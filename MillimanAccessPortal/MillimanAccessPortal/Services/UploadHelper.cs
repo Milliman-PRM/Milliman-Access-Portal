@@ -189,7 +189,6 @@ namespace MillimanAccessPortal.Services
             string concatenationFilePath = _fileProvider.GetFileInfo(_pathSet.Concat).PhysicalPath;
             using (FileStream concatenationStream = File.OpenWrite(concatenationFilePath))
             {
-                Stopwatch stopwatch = new Stopwatch();
                 foreach (int chunkNumber in Enumerable.Range(1, Convert.ToInt32(Info.TotalChunks)))
                 {
                     // Log one of every 10 chunks at Information level
@@ -200,16 +199,12 @@ namespace MillimanAccessPortal.Services
                     string chunkFilePath = _pathSet.ChunkFilePath((uint)chunkNumber);
                     string chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
 
-                    stopwatch.Restart();
                     using (FileStream chunkStream = File.OpenRead(chunkFilePathPhysical))
                     {
                         chunkStream.CopyTo(concatenationStream);
                     }
-                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenating chunk {chunkNumber}, file {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}", logLevel);
 
-                    stopwatch.Restart();
                     File.Delete(chunkFilePathPhysical);
-                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Deleting chunk {chunkNumber}, file {chunkFilePathPhysical} took {stopwatch.ElapsedMilliseconds}", logLevel);
                 }
             }
             var chunkDirPath = _fileProvider.GetFileInfo(_pathSet.Chunk).PhysicalPath;

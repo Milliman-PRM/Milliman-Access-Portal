@@ -12,6 +12,8 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
+using System.IO.Compression;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace MapCommonLib
 {
@@ -285,15 +287,15 @@ namespace MapCommonLib
         }
 
         /// <summary>
-        /// Extracts all contents of a tar file to a folder.  The file may be gzip compressed.  The archive file is not deleted. 
-        /// The tar file should use only ASCII encoding in the name fields.
+        /// Extracts all contents of a compressed file to a folder.  The source file is not deleted. 
+        /// A tar file should use only ASCII encoding in the name fields.
         /// </summary>
         /// <param name="fileFullPath">Filename extension must be .tar or .gz</param>
         /// <param name="targetFolder">If not provided, the contents will be extracted to the folder containing the tar file</param>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="DirectoryNotFoundException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public static void ExtractFromTar(string fileFullPath, string targetFolder = null)
+        public static void ExtractCompressedFile(string fileFullPath, string targetFolder = null)
         {
             if (!File.Exists(fileFullPath))
             {
@@ -328,8 +330,53 @@ namespace MapCommonLib
                         }
                         break;
 
+                    case string name when name.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase):
+                        using (ZipInputStream zipStream = new ZipInputStream(rawFileStream))
+                        {
+                            ZipEntry theEntry;
+                            while ((theEntry = zipStream.GetNextEntry()) != null)
+                            {
+
+                                Console.WriteLine(theEntry.Name);
+
+                                string directoryName = Path.GetDirectoryName(theEntry.Name);
+                                string fileName = Path.GetFileName(theEntry.Name);
+
+                                string destinationFile = Path.Combine(targetFolder, fileName.TrimStart('/'));
+
+                                // create directory
+                                if (directoryName.Length > 0)
+                                {
+                                    Directory.CreateDirectory(directoryName);
+                                }
+
+                                if (fileName != String.Empty)
+                                {
+                                    using (FileStream streamWriter = File.Create(destinationFile))
+                                    {
+
+                                        int size = 2048;
+                                        byte[] data = new byte[2048];
+                                        while (true)
+                                        {
+                                            size = zipStream.Read(data, 0, data.Length);
+                                            if (size > 0)
+                                            {
+                                                streamWriter.Write(data, 0, size);
+                                            }
+                                            else
+                                            {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+
                     default:
-                        throw new ArgumentException($"Archive file name {Path.GetFileName(fileFullPath)} does not have a supported extension, must be .tar or .gz", nameof(fileFullPath));
+                        throw new ArgumentException($"Archive file name {Path.GetFileName(fileFullPath)} does not have a supported extension", nameof(fileFullPath));
                 }
             }
         }
@@ -345,7 +392,6 @@ namespace MapCommonLib
         TrackQlikviewApiTiming,
         TrackingContainerPublishing,
         ContainerLaunchFlow,
-        UploadHelperProcessing,
     }
 
 }
