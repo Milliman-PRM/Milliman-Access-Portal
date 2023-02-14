@@ -8,6 +8,8 @@ using ContentPublishingLib;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using Npgsql;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -72,9 +74,12 @@ namespace ContentPublishingServiceTests
             ConnectionString = cxnStringBuilder.ConnectionString;
             #endregion
 
-            var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            builder.UseNpgsql(ConnectionString, o => o.SetPostgresVersion(9, 6));
-            using (ApplicationDbContext db = new ApplicationDbContext(builder.Options))
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+            DbContextOptions<ApplicationDbContext> contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
+
+            using (ApplicationDbContext db = new ApplicationDbContext(contextOptions))
             {
                 db.Database.EnsureCreated();
             }
@@ -131,9 +136,12 @@ namespace ContentPublishingServiceTests
 
         public void Dispose()
         {
-            var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            builder.UseNpgsql(ConnectionString);
-            using (ApplicationDbContext db = new ApplicationDbContext(builder.Options))
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+            DbContextOptions<ApplicationDbContext> contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
+
+            using (ApplicationDbContext db = new ApplicationDbContext(contextOptions))
             {
                 db.Database.EnsureDeleted();
             }
