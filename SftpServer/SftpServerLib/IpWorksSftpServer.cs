@@ -136,6 +136,11 @@ namespace SftpServerLib
             //[Description("Shows the progress of the secure connection.")]
             _sftpServer.OnSSHStatus += IpWorksSftpServerEventHandlers.OnSSHStatus;
 
+            _sftpServer.ShutdownCompleted += IpWorksSftpServerEventHandlers.ShutdownCompleted;
+            _sftpServer.SetFileListCompleted += IpWorksSftpServerEventHandlers.SetFileListCompleted;
+            _sftpServer.ExchangeKeysCompleted += IpWorksSftpServerEventHandlers.ExchangeKeysCompleted;
+            _sftpServer.DisconnectCompleted += IpWorksSftpServerEventHandlers.DisconnectCompleted;
+
             Log.Verbose("SFTP Server event handlers assigned");
             #endregion
         }

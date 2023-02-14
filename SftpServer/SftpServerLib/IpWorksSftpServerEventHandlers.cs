@@ -769,25 +769,25 @@ namespace SftpServerLib
 
                         if (!connectedAccount.IsCurrent(sftpPasswordExpirationDays))
                         {
-                            IpWorksSftpServer._sftpServer.Disconnect(connection.Id);
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account is suspended or has expired password");
                         }
                         else if (connectedAccount.FileDropUserPermissionGroup == null)
                         {
-                            IpWorksSftpServer._sftpServer.Disconnect(connection.Id);
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account currently is not authorized through a permission group");
                         }
                         else if (connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended)
                         {
-                            IpWorksSftpServer._sftpServer.Disconnect(connection.Id);
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the file drop is suspended");
                         }
                         else if (DateTime.UtcNow > connection.ClientAccessReviewDeadline)
                         {
-                            IpWorksSftpServer._sftpServer.Disconnect(connection.Id);
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the client access review deadline has passed");
                         }
@@ -796,7 +796,7 @@ namespace SftpServerLib
                                   (connectedAccount.ApplicationUser.IsSuspended ||
                                     !(connection.MapUserIsSso || DateTime.UtcNow - connectedAccount.ApplicationUser.LastPasswordChangeDateTimeUtc < TimeSpan.FromDays(mapPasswordExpirationDays))))
                         {
-                            IpWorksSftpServer._sftpServer.Disconnect(connection.Id);
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the related MAP user is suspended or is locally authenticated and has expired password");
                         }
@@ -825,6 +825,27 @@ namespace SftpServerLib
                 }
             }
         }
+
+        #region Async event completion handlers
+        internal static void ShutdownCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Log.Information(GenerateEventArgsLogMessage($"ShutdownCompleted, {_connections.Count} connections will be deleted", evtData));
+            _connections.Clear();
+        }
+
+        internal static void SetFileListCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Log.Information(GenerateEventArgsLogMessage("SetFileListCompleted", evtData));
+        }
+        internal static void ExchangeKeysCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Log.Information(GenerateEventArgsLogMessage("ExchangeKeysCompleted", evtData));
+        }
+        internal static void DisconnectCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
+        {
+            Log.Information(GenerateEventArgsLogMessage("DisconnectCompleted", evtData));
+        }
+        #endregion
 
         #endregion
 
