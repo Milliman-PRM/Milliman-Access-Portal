@@ -671,7 +671,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                     
                     ContainerizedAppContentItemProperties liveDetails = (ContainerizedAppContentItemProperties)ContentItem.TypeSpecificDetailObject;
-                    publicationHasPublicationDetailChanges = liveDetails.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails);
+                    publicationHasPublicationDetailChanges = liveDetails?.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails) ?? true;
 
                     break;
             }

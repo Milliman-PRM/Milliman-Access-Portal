@@ -98,10 +98,12 @@ namespace MapDbContextLib.Models
             returnValue |= LiveContainerCpuCores != requestProps.ContainerCpuCores;
             returnValue |= LiveContainerRamGb != requestProps.ContainerRamGb;
             returnValue |= LiveContainerInternalPort != requestProps.ContainerInternalPort;
-            returnValue |= LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
-            returnValue |= !LiveContainerStorageShareNames.Any() && requestProps.DataPersistenceEnabled;
+            returnValue |= LiveContainerLifetimeScheme is null || LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
+            returnValue |= requestProps.DataPersistenceEnabled && (LiveContainerStorageShareNames is null || !LiveContainerStorageShareNames.Any());
 
-            if (LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && !returnValue)
+            if (LiveContainerLifetimeScheme != null && 
+                LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && 
+                !returnValue)
             {
                 CustomScheduleLifetimeScheme liveLifetimeScheme = (CustomScheduleLifetimeScheme)LiveContainerLifetimeScheme;
                 CustomScheduleLifetimeScheme requestScheme = new CustomScheduleLifetimeScheme(requestProps);

@@ -157,7 +157,7 @@ namespace MillimanAccessPortal
                             catch (Exception ex)
                             {
                                 publicationRequest = await Db.ContentPublicationRequest.FindAsync(publicationRequest.Id);
-                                Log.Error(ex, $"Exception from HandleRelatedFile.ContentPublishSupport");
+                                Log.Error(ex, $"Exception from ContentPublishSupport.MonitorPublicationRequestForQueueingAsync");
                                 publicationRequest.RequestStatus = PublicationStatus.Error;
                                 publicationRequest.StatusMessage = ex.Message;
                                 await Db.SaveChangesAsync();
@@ -343,7 +343,7 @@ namespace MillimanAccessPortal
         /// </summary>
         /// <param name="FileDetails"></param>
         /// <param name="RequestGuid"></param>
-        /// <param name="DoesReduce"></param>
+        /// <param name="DoesReduce">This method processes the master file only if this is true</param>
         /// <param name="exchangePath"></param>
         /// <returns></returns>
         private static ContentRelatedFile ProcessMasterContentFile(ContentRelatedFile FileDetails, Guid RequestGuid, bool DoesReduce, string exchangePath)

@@ -14,6 +14,7 @@ using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 //using Microsoft.EntityFrameworkCore.Storage;  // for transaction support
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -420,12 +421,19 @@ namespace MillimanAccessPortal.Services
                             containerContentItemProperties.PreviewContainerStorageShareNames = new Dictionary<string, string>();
                             foreach (string name in shareNames )
                             {
-                                // Terminology: Here we establish *share*(s). Later when we spin up a container group a *share* becomes available to the container as a *volume*
+                                // Terminology: Here we establish *share*(s). Later when we spin up a container group a *share* becomes *mounted* to the container as a *volume*
                                 string azureShareName = await cloudApi.CreateFileShare(contentItem.Id, shareNames[0], true, true);
                                 containerContentItemProperties.PreviewContainerStorageShareNames.Add(shareNames[0], azureShareName);
+
+                                foreach (ContentRelatedFile zipFile in thisPubRequest.LiveReadyFilesObj.Where(f => f.FilePurpose.Equals("ContainerPersistedData", StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    // System.IO.
+                                    // TODO Figure out how to handle multiple zip files/shares some day when that's supported
+                                    // 
+                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, azureShareName);
+                                }
                             }
 
-                            // TODO Populate the share with data using a zip file provided with the publish request (or as otherwise approprite)
                         }
                         #endregion
 

@@ -7,16 +7,16 @@ using Azure.ResourceManager.ContainerInstance;
 using Azure.ResourceManager.ContainerRegistry.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
+using Azure.ResourceManager.Storage.Models;
 using Azure.Storage.Files.Shares;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Azure.ResourceManager.Storage.Models;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
-using System.Reflection.Metadata.Ecma335;
 
 namespace CloudResourceLib
 {
@@ -332,6 +332,43 @@ namespace CloudResourceLib
             }
         }
 
+        public async Task ExtractCompressedFileToShare(string fileFullPath, string shareName)
+        {
+            if (!File.Exists(fileFullPath))
+            {
+                throw new FileNotFoundException("Unable to extract archive, not found", fileFullPath);
+            }
+
+            if (fileFullPath.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
+            {
+                using (Stream zipFileStream = File.OpenRead(fileFullPath))
+                {
+                    var zipArchive = new ZipArchive(zipFileStream);
+                    foreach (var entry in zipArchive.Entries)
+                    {
+                        FileAttributes entryAttributes = (FileAttributes)entry.ExternalAttributes;
+                        if ((entryAttributes & FileAttributes.Directory) != FileAttributes.Directory)  // only for a file
+                        {
+                            string tempFileName = Path.Combine(Path.GetDirectoryName(fileFullPath), Guid.NewGuid().ToString());
+                            try
+                            {
+                                entry.ExtractToFile(tempFileName);
+                                await UploadFileToShare(tempFileName, shareName, entry.FullName);
+                            }
+                            finally
+                            {
+                                File.Delete(tempFileName);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // TODO uh oh
+            }
+        }
+
         /// <summary>
         /// Removes a File Share.
         /// </summary>
@@ -433,6 +470,42 @@ namespace CloudResourceLib
             catch (Exception ex)
             {
                 Log.Error(ex, "Error uploading file to Azure File Share.");  // temporary or improve
+                throw;
+            }
+        }
+
+        public async Task UploadFileToShare(string fileName, string fileShareName, string destinationFilePath)
+        {
+            try
+            {
+                Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
+                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+
+                ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+                ShareDirectoryClient directoryClient= shareClient.GetRootDirectoryClient();
+
+                string destinationFolder = Path.Combine("/", Path.GetDirectoryName(destinationFilePath));
+                string destinationFileName = Path.GetFileName(destinationFilePath);
+
+                if (destinationFolder != "/")
+                {
+                    directoryClient = directoryClient.GetSubdirectoryClient(destinationFolder);
+                    await directoryClient.CreateIfNotExistsAsync();
+                }
+
+                ShareFileClient fileClient = directoryClient.GetFileClient(destinationFileName);
+
+                FileInfo fileInfo = new FileInfo(fileName);
+                fileClient.Create(fileInfo.Length);
+
+                using (FileStream sourceFileStream = File.OpenRead(fileName))
+                {
+                    fileClient.Upload(sourceFileStream);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error uploading file to Azure File Share from provided stream.");  // temporary or improve
                 throw;
             }
         }

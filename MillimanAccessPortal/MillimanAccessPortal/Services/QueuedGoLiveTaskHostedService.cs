@@ -453,6 +453,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                                 AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
                                                 foreach (var shareInfo in containerizedAppTypeSpecificProperties.LiveContainerStorageShareNames)
                                                 {
+                                                    ///<see cref="https://indy-github.milliman.com/PRM/Milliman-Access-Portal/issues/2028"/>
                                                     // if (needed) TODO - what should this logic be?
                                                     {
                                                         // TODO Create the share (and populate data) as needed 

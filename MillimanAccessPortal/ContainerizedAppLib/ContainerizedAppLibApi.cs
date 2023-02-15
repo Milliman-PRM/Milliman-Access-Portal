@@ -272,7 +272,7 @@ namespace ContainerizedAppLib
 #warning TODO note in publishing user guide that the tar file should use only ASCII encoding in the name fields
 
             string workingFolderName = Path.GetDirectoryName(imageFileFullPath);
-            GlobalFunctions.ExtractFromTar(imageFileFullPath);
+            GlobalFunctions.ExtractCompressedFile(imageFileFullPath);
 
             try
             {

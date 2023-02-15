@@ -336,38 +336,22 @@ namespace MapCommonLib
                             ZipEntry theEntry;
                             while ((theEntry = zipStream.GetNextEntry()) != null)
                             {
+                                string destinationFile = Path.Combine(targetFolder, theEntry.Name.TrimStart('/', '\\'));
+                                string fileName = Path.GetFileName(destinationFile);
+                                string fullDirectory = Path.GetDirectoryName(destinationFile);
 
-                                Console.WriteLine(theEntry.Name);
-
-                                string directoryName = Path.GetDirectoryName(theEntry.Name);
-                                string fileName = Path.GetFileName(theEntry.Name);
-
-                                string destinationFile = Path.Combine(targetFolder, fileName.TrimStart('/'));
-
-                                // create directory
-                                if (directoryName.Length > 0)
+                                if (theEntry.IsDirectory)
                                 {
-                                    Directory.CreateDirectory(directoryName);
+                                    Directory.CreateDirectory(fullDirectory);
                                 }
-
-                                if (fileName != String.Empty)
+                                else if (theEntry.IsFile)
                                 {
                                     using (FileStream streamWriter = File.Create(destinationFile))
                                     {
-
-                                        int size = 2048;
                                         byte[] data = new byte[2048];
-                                        while (true)
+                                        for (int size = zipStream.Read(data, 0, data.Length); size  > 0; size = zipStream.Read(data, 0, data.Length))
                                         {
-                                            size = zipStream.Read(data, 0, data.Length);
-                                            if (size > 0)
-                                            {
-                                                streamWriter.Write(data, 0, size);
-                                            }
-                                            else
-                                            {
-                                                break;
-                                            }
+                                            streamWriter.Write(data, 0, size);
                                         }
                                     }
                                 }
