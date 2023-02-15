@@ -15,7 +15,6 @@ using AuditLogLib.Event;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
-using MapDbContextLib.Context;
 using Npgsql;
 
 namespace AuditLogLib
@@ -64,6 +63,15 @@ namespace AuditLogLib
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
+            if (!builder.IsConfigured)
+            {
+                // This block supports ef migration operations, where no connection string is available through dependency injection
+
+                var connectionString = GetConfiguredConnectionString();
+                NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+                var dataSource = dataSourceBuilder.Build();
+                builder.UseNpgsql(dataSource);
+            }
         }
 
         /// <summary>
