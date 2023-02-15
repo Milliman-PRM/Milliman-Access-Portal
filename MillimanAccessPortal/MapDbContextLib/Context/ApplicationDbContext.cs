@@ -221,14 +221,6 @@ namespace MapDbContextLib.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-        //    DbContextOptionsBuilder builder = optionsBuilder;
-        //    if (optionsBuilder.IsConfigured)
-        //    {
-        //        NpgsqlOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().First();
-        //        string connectionString = extension.DataSource.ConnectionString;
-
-        //        optionsBuilder.UseNpgsql(connectionString);
-        //    }
         }
 
         public static async Task InitializeAllAsync(IServiceProvider serviceProvider)
