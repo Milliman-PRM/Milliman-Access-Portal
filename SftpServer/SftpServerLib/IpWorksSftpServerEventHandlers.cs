@@ -47,7 +47,7 @@ namespace SftpServerLib
         {
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRemove.htm
 
-            Log.Verbose(GenerateEventArgsLogMessage("FileRemove", evtData));
+            Log.Information(GenerateEventArgsLogMessage("FileRemove", evtData));
 
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Delete);
 
@@ -82,7 +82,7 @@ namespace SftpServerLib
         {
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRead.htm
             // This event occurs between OnFileOpen and OnFileClose, only to document transfer of a block of file data
-            Log.Verbose(GenerateEventArgsLogMessage("FileRead", evtData));
+            Log.Information(GenerateEventArgsLogMessage("FileRead", evtData));
 
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Read);
 
@@ -102,7 +102,7 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to open or create a file.")]
         internal static void OnFileOpen(object sender, SftpserverFileOpenEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("FileOpen", evtData));
+            Log.Information(GenerateEventArgsLogMessage("FileOpen", evtData));
 
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileOpen.htm
 
@@ -319,7 +319,7 @@ namespace SftpServerLib
                     }
                 }
             }
-            Log.Verbose($"File closed, connection {evtData.ConnectionId}, user {evtData.User}, path {evtData.Path}");
+            Log.Information($"File closed, connection {evtData.ConnectionId}, user {evtData.User}, path {evtData.Path}");
         }
 
         //[Description("Fired when a connection is closed.")]
@@ -381,7 +381,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to open a directory for listing.")]
         internal static void OnDirList(object sender, SftpserverDirListEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("DirList", evtData));
+            Log.Information(GenerateEventArgsLogMessage("DirList", evtData));
         }
 
         //[Description("Fires when a client wants to create a new directory.")]
@@ -422,7 +422,7 @@ namespace SftpServerLib
         //[Description("Fired when a request for connection comes from a remote host.")]
         internal static void OnConnectionRequest(object sender, SftpserverConnectionRequestEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
+            Log.Information(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
         }
 
         //[Description("Fired immediately after a connection completes (or fails).")]
@@ -442,7 +442,7 @@ namespace SftpServerLib
         //[Description("Fires when a client needs to get file information.")]
         internal static void OnGetAttributes(object sender, SftpserverGetAttributesEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("GetAttributes", evtData));
+            Log.Information(GenerateEventArgsLogMessage("GetAttributes", evtData));
 
             switch (evtData.FileType)
             {
@@ -457,14 +457,14 @@ namespace SftpServerLib
         //[Description("Fires once for each log message.")]
         internal static void OnLog(object sender, SftpserverLogEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("Log", evtData));
+            Log.Information(GenerateEventArgsLogMessage("Log", evtData));
             //Log.Debug($"Event OnLog: Args: {JsonSerializer.Serialize(evtData, prettyJsonOptions)}");
         }
 
         //[Description("Fires when a client attempts to canonicalize a path.")]
         internal static void OnResolvePath(object sender, SftpserverResolvePathEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("ResolvePath", evtData));
+            Log.Information(GenerateEventArgsLogMessage("ResolvePath", evtData));
         }
 
         //[Description("Fires when a client wants to rename a file.")]
@@ -559,7 +559,7 @@ namespace SftpServerLib
         internal static void OnFileWrite(object sender, SftpserverFileWriteEventArgs evtData)
         {
         // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileWrite.htm
-            Log.Verbose(GenerateEventArgsLogMessage("FileWrite", evtData));
+            Log.Information(GenerateEventArgsLogMessage("FileWrite", evtData));
 
             if (evtData.BeforeExec)
             {
@@ -582,14 +582,14 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to set file or directory attributes.")]
         internal static void OnSetAttributes(object sender, SftpserverSetAttributesEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("SetAttributes", evtData));
+            Log.Information(GenerateEventArgsLogMessage("SetAttributes", evtData));
         }
 
         //[Description("Fires when a client attempts to authenticate a connection.")]
         internal static void OnSSHUserAuthRequest(object sender, SftpserverSSHUserAuthRequestEventArgs evtData)
         {
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
-            Log.Verbose(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
+            Log.Information(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
 
             string clientAddress = IpWorksSftpServer._sftpServer.Connections[evtData.ConnectionId]?.RemoteHost;
 
@@ -734,7 +734,7 @@ namespace SftpServerLib
         //[Description("Shows the progress of the secure connection.")]
         internal static void OnSSHStatus(object sender, SftpserverSSHStatusEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("SSHStatus", evtData));
+            Log.Information(GenerateEventArgsLogMessage("SSHStatus", evtData));
         }
 
         internal static void OnMaintenanceTimerElapsed(object source, System.Timers.ElapsedEventArgs e)
@@ -830,7 +830,7 @@ namespace SftpServerLib
 
         protected static string GenerateEventArgsLogMessage(string eventName, EventArgs args)
         {
-            return $"{eventName} event with EventArgs: {JsonSerializer.Serialize(args, args.GetType(), prettyJsonOptions)}";
+            return $"{eventName} event with EventArgs: {JsonSerializer.Serialize(args, args.GetType(), prettyJsonOptions).Replace("\\r\\n", Environment.NewLine)}";
 
             // Some event data has escaped characters (e.g. " => \0022, \r => <CR>, \n => <LF>, etc.). The following unescapes those.
             //return $"{DateTime.UtcNow.ToString("u")} {eventName} event with EventArgs: {Regex.Unescape(JsonSerializer.Serialize(args, args.GetType(), prettyJsonOptions))}";
@@ -889,7 +889,7 @@ namespace SftpServerLib
             }
             else
             {
-                Log.Debug($"Connection {connectionId} exists but does not have required access {requiredAccess}");
+                Log.Information($"Connection {connectionId} exists but does not have required access {requiredAccess}");
                 return (AuthorizationResult.NotAuthorized, connectionRecord);
             }
         }

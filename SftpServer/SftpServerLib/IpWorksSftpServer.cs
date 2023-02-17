@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using nsoftware.IPWorksSSH;
 using Serilog;
 using System;
@@ -82,12 +83,16 @@ namespace SftpServerLib
 
         private protected void EstablishServerInstance(Certificate cert)
         {
+            string RuntimeLicense = GlobalResources.GetConfigValue<string>("SftpServerRuntimeLicense");
+
             _sftpServer = new Sftpserver
             {
                 RootDirectory = GlobalResources.GetConfigValue<string>("FileDropRoot"),
                 SSHCert = cert,
-                RuntimeLicense = GlobalResources.GetConfigValue<string>("SftpServerRuntimeLicense"),
+                RuntimeLicense = "31484E4841443153554232303234303231335241454E545032444D30474B303000414A4B4C5648005A465848424A33300000585354353937534755584A470000",
             };
+
+            _sftpServer.Config($@"LogLevel=3");
 
             // arcfour algorithms were identified as weak during penetration tests
             string[] defaultEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms.Split(',');
@@ -122,7 +127,7 @@ namespace SftpServerLib
             //[Description("Fires when a client needs to get file information.")]
             _sftpServer.OnGetAttributes += IpWorksSftpServerEventHandlers.OnGetAttributes;
             //[Description("Fires once for each log message.")]
-            //_sftpServer.OnLog += IpWorksSftpServerEventHandlers.OnLog;
+            _sftpServer.OnLog += IpWorksSftpServerEventHandlers.OnLog;
             //[Description("Fires when a client attempts to canonicalize a path.")]
             _sftpServer.OnResolvePath += IpWorksSftpServerEventHandlers.OnResolvePath;
             //[Description("Fires when a client wants to rename a file.")]
