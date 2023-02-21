@@ -338,7 +338,6 @@ namespace MillimanAccessPortal.DataQueries
                 Guid[] userIdsRemovedInUpdatedGroups = model.UpdatedPermissionGroups.SelectMany(g => g.Value.UsersRemoved).ToArray();
                 List<ApplicationUser> usersRemovedInUpdates = await _dbContext.ApplicationUser
                                                                               .Include(u => u.SftpAccounts)
-                                                                                  .ThenInclude(a => a.ApplicationUser)
                                                                               .Where(u => userIdsRemovedInUpdatedGroups.Contains(u.Id))
                                                                               .ToListAsync();
 
