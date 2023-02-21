@@ -55,8 +55,7 @@ namespace MapDbContextLib.Context
 
         public static void MapEnums(NpgsqlDataSourceBuilder dataSourceBuilder)
         {
-#if false  
-            // This new technique fails using npgsql v7.0.1 due to a bug in that package, fixed in v7.0.2, expected very soon
+#if true  
             dataSourceBuilder.MapEnum<AuthenticationType>()
                              .MapEnum<PublicationStatus>()
                              .MapEnum<ReductionStatusEnum>()
