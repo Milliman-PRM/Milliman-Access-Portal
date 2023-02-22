@@ -9,6 +9,7 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Azure.Storage.Files.Shares;
+using Azure.Storage.Files.Shares.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Reflection;
 
 namespace CloudResourceLib
 {
@@ -166,7 +168,7 @@ namespace CloudResourceLib
         /// <summary>
         /// Initializes this api with Azure client credentials
         /// </summary>
-        /// <param name="credentials">A collection of credentials</param>
+        /// <param name="credentials">An enumerable of credentials objects</param>
         /// <param name="location">Name of an Azure public cloud location.  See <see cref="https://learn.microsoft.com/en-us/dotnet/api/azure.core.azurelocation?view=azure-dotnet#properties"/></param>
         public static void InitClients(IEnumerable<AzureClientCredential> credentials, string location)
         {
@@ -222,8 +224,8 @@ namespace CloudResourceLib
             const string validSaltChars = "abcdefghijklmnopqrstuvwxyz1234567890";
             string returnValue = string.Empty;
 
-            List<string> fileShareNames = GetExistingShareNamesForContent(contentItemId, name, isPreview);
-            Log.Debug($"Found shares with names:{string.Join("", fileShareNames.Select(n => $"{Environment.NewLine}    {n}"))}");  // temporary or improve
+            List<string> existingShareNames = GetExistingShareNamesForContent(contentItemId, name, isPreview);
+            Log.Debug($"Found shares with names:{string.Join("", existingShareNames.Select(n => $"{Environment.NewLine}    {n}"))}");  // temporary or improve
 
             do
             {
@@ -235,7 +237,7 @@ namespace CloudResourceLib
                 }
                 returnValue = $"content-{contentItemId.ToString("N")}-{name}-{res.ToString()}{(isPreview ? "-preview" : "")}";
             }
-            while (fileShareNames.Contains(returnValue));
+            while (existingShareNames.Contains(returnValue));
 
             return returnValue;
         }
@@ -421,13 +423,12 @@ namespace CloudResourceLib
         /// <param name="fileShareName"></param>
         /// <param name="directoryName"></param>
         /// <returns></returns>
-        public static async Task CreateFileShareDirectory(string resourceGroupName, string storageAccountName, string fileShareName, string directoryName)
+        public async Task CreateFileShareDirectory(string fileShareName, string directoryName)
         {
             try
             {
-                StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
-                var storageAccountKeys = targetedStorageAccount.GetKeys();
-                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+                var storageAccountKeys = _storageAccount.GetKeys();
+                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
                 ShareClient shareClient = new ShareClient(connectionString, fileShareName);
                 await shareClient.CreateDirectoryAsync(directoryName);
             }
@@ -474,7 +475,7 @@ namespace CloudResourceLib
             }
         }
 
-        public async Task UploadFileToShare(string fileName, string fileShareName, string destinationFilePath)
+        public async Task UploadFileToShare(string fileName, string fileShareName, string destinationFileFullPath)
         {
             try
             {
@@ -484,8 +485,10 @@ namespace CloudResourceLib
                 ShareClient shareClient = new ShareClient(connectionString, fileShareName);
                 ShareDirectoryClient directoryClient= shareClient.GetRootDirectoryClient();
 
-                string destinationFolder = Path.Combine("/", Path.GetDirectoryName(destinationFilePath));
-                string destinationFileName = Path.GetFileName(destinationFilePath);
+                string destinationFolder = Path.IsPathRooted(destinationFileFullPath)
+                    ? Path.GetDirectoryName(destinationFileFullPath)
+                    : Path.Combine("/", Path.GetDirectoryName(destinationFileFullPath));
+                string destinationFileName = Path.GetFileName(destinationFileFullPath);
 
                 if (destinationFolder != "/")
                 {
@@ -493,20 +496,94 @@ namespace CloudResourceLib
                     await directoryClient.CreateIfNotExistsAsync();
                 }
 
-                ShareFileClient fileClient = directoryClient.GetFileClient(destinationFileName);
+                ShareFileClient targetFileClient = directoryClient.GetFileClient(destinationFileName);
 
                 FileInfo fileInfo = new FileInfo(fileName);
-                fileClient.Create(fileInfo.Length);
+                targetFileClient.Create(fileInfo.Length);
 
                 using (FileStream sourceFileStream = File.OpenRead(fileName))
                 {
-                    fileClient.Upload(sourceFileStream);
+                    targetFileClient.Upload(sourceFileStream);
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error uploading file to Azure File Share from provided stream.");  // temporary or improve
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Does not close the source stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="length"></param>
+        /// <param name="fileShareName"></param>
+        /// <param name="destinationFileFullPath"></param>
+        /// <returns></returns>
+        public async Task UploadStreamToShare(Stream source, long length, string fileShareName, string destinationFileFullPath)
+        {
+            Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+
+            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+            ShareDirectoryClient directoryClient = shareClient.GetRootDirectoryClient();
+
+            string destinationFolder = Path.IsPathRooted(destinationFileFullPath)
+                ? Path.GetDirectoryName(destinationFileFullPath)
+                : Path.Combine("/", Path.GetDirectoryName(destinationFileFullPath));
+            string destinationFileName = Path.GetFileName(destinationFileFullPath);
+
+            if (destinationFolder != "/")
+            {
+                directoryClient = directoryClient.GetSubdirectoryClient(destinationFolder);
+                await directoryClient.CreateIfNotExistsAsync();
+            }
+
+            ShareFileClient targetFileClient = directoryClient.GetFileClient(destinationFileName);
+            targetFileClient.Create(length);
+
+            targetFileClient.Upload(source);
+        }
+
+        public async Task DuplicateShareContents(string sourceShareName, string destinationShareName)
+        {
+            Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+
+            FileShareResource sourceFileShareResource = _fileService.GetFileShare(sourceShareName);
+            ShareClient sourceShareClient = new ShareClient(connectionString, sourceFileShareResource.Data.Name);
+
+            FileShareResource destinationFileShareResource = _fileService.GetFileShare(destinationShareName);
+            ShareClient destinationShareClient = new ShareClient(connectionString, destinationFileShareResource.Data.Name);
+
+            DuplicateDirectoryContents(sourceShareClient.GetRootDirectoryClient(), destinationShareClient.GetRootDirectoryClient());
+        }
+
+        private void DuplicateDirectoryContents(ShareDirectoryClient sourceDirectoryClient, ShareDirectoryClient destinationDirectoryClient)
+        {
+            destinationDirectoryClient.CreateIfNotExists();
+
+            Pageable<ShareFileItem> items = sourceDirectoryClient.GetFilesAndDirectories();
+
+            // First, copy files in this directory
+            foreach (ShareFileItem item in items.Where(i => !i.IsDirectory))
+            {
+                ShareFileClient sourceFileClient = sourceDirectoryClient.GetFileClient(item.Name);
+                using (Stream sourceStream = sourceFileClient.OpenRead())
+                {
+                    ShareFileClient destinationFileClient = destinationDirectoryClient.GetFileClient(item.Name);
+                    destinationFileClient.Create(item.FileSize.Value);
+                    destinationFileClient.Upload(sourceStream);
+                }
+            }
+
+            // Second, recurse subfolders
+            foreach (ShareFileItem item in items.Where(i => i.IsDirectory))
+            {
+                ShareDirectoryClient sourceSubDirectoryClient = sourceDirectoryClient.GetSubdirectoryClient(item.Name);
+                ShareDirectoryClient destinationSubDirectoryClient = destinationDirectoryClient.GetSubdirectoryClient(item.Name);
+                DuplicateDirectoryContents(sourceSubDirectoryClient, destinationSubDirectoryClient);
             }
         }
 

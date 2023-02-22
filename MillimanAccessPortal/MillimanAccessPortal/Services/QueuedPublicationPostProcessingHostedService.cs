@@ -415,22 +415,26 @@ namespace MillimanAccessPortal.Services
                         {
                             var cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
 
-                            // When we eventually support multiple shares we probably have a collection of provided names from containerizedAppPubProperties
+                            // When we support multiple shares we probably get a collection of names from containerizedAppPubProperties
                             string[] shareNames = new[] { "main" };
 
                             containerContentItemProperties.PreviewContainerStorageShareNames = new Dictionary<string, string>();
-                            foreach (string name in shareNames )
+                            foreach (string shareName in shareNames)
                             {
-                                // Terminology: Here we establish *share*(s). Later when we spin up a container group a *share* becomes *mounted* to the container as a *volume*
-                                string azureShareName = await cloudApi.CreateFileShare(contentItem.Id, shareNames[0], true, true);
-                                containerContentItemProperties.PreviewContainerStorageShareNames.Add(shareNames[0], azureShareName);
+                                // Terminology: Here we establish *share*(s).  Later when we spin up a container group, a 
+                                // *share* becomes *mounted* to the group and is available as a *volume* to each container in the group
+                                string newPreviewShareName = await cloudApi.CreateFileShare(contentItem.Id, shareName, true, true);
+                                containerContentItemProperties.PreviewContainerStorageShareNames.Add(shareName, newPreviewShareName);
 
-                                foreach (ContentRelatedFile zipFile in thisPubRequest.LiveReadyFilesObj.Where(f => f.FilePurpose.Equals("ContainerPersistedData", StringComparison.OrdinalIgnoreCase)))
+                                // When we support multiple shares figure out how to handle uploaded zip file(s) and extract each zip to the appropriate share
+                                ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.StartsWith("ContainerPersistedData", StringComparison.OrdinalIgnoreCase));
+                                if (zipFile != default)
                                 {
-                                    // System.IO.
-                                    // TODO Figure out how to handle multiple zip files/shares some day when that's supported
-                                    // 
-                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, azureShareName);
+                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewShareName);
+                                }
+                                else if (containerContentItemProperties.LiveContainerStorageShareNames.Any(n => n.Key.Contains(shareName)))
+                                {
+                                    await cloudApi.DuplicateShareContents(containerContentItemProperties.LiveContainerStorageShareNames[shareName], newPreviewShareName);
                                 }
                             }
 

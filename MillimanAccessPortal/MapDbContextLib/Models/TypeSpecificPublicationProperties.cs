@@ -97,6 +97,20 @@ namespace MapDbContextLib.Models
         Custom = 2,
     }
 
+    public enum ContainerShareContentsAction
+    {
+        [Display(Name = "Replace All")]
+        ReplaceAll = 0,
+        [Display(Name = "Overwrite Conflicts")]
+        OverwriteConflicts = 1,
+    }
+
+    public class ContainerSharePublicationInfo
+    {
+        public string ShareName { get; set; }
+        public ContainerShareContentsAction Action { get; set; } = ContainerShareContentsAction.ReplaceAll;
+    }
+
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase
     {
         public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
@@ -122,6 +136,7 @@ namespace MapDbContextLib.Models
         public string? TimeZoneId { get; set; }
 
         public bool DataPersistenceEnabled { get; set; } = false;
+        public List<ContainerSharePublicationInfo> ShareInfo { get; set; } = new List<ContainerSharePublicationInfo>();
     }
 
     internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>
