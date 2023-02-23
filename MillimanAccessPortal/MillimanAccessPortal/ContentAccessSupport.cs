@@ -70,8 +70,8 @@ namespace MillimanAccessPortal
         {
             ContentReductionTask thisContentReductionTask = null;
 
-
             NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
             NpgsqlDataSource dataSource = dataSourceBuilder.Build();
             DbContextOptions<ApplicationDbContext> ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")).Options;
 
@@ -254,6 +254,7 @@ namespace MillimanAccessPortal
             GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"LongRunningUpdateSelectionCodeAsync  started for reduction task {reductionTask.Id.ToString()}");
 
             NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
             NpgsqlDataSource dataSource = dataSourceBuilder.Build();
             DbContextOptions<ApplicationDbContext> ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")).Options;
 

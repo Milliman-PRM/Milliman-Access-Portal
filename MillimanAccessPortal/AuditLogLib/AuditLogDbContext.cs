@@ -16,6 +16,7 @@ using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Npgsql;
+using MapDbContextLib.Context;
 
 namespace AuditLogLib
 {
@@ -34,6 +35,7 @@ namespace AuditLogLib
             }
 
             NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
             NpgsqlDataSource dataSource = dataSourceBuilder.Build();
             DbContextOptions<AuditLogDbContext> contextOptions = new DbContextOptionsBuilder<AuditLogDbContext>().UseNpgsql(dataSource).Options;
 
@@ -69,6 +71,7 @@ namespace AuditLogLib
 
                 var connectionString = GetConfiguredConnectionString();
                 NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+                ApplicationDbContext.MapEnums(dataSourceBuilder);
                 var dataSource = dataSourceBuilder.Build();
                 builder.UseNpgsql(dataSource);
             }

@@ -75,6 +75,7 @@ namespace MillimanAccessPortal
 
             ContentPublicationRequest publicationRequest;
             NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
             NpgsqlDataSource dataSource = dataSourceBuilder.Build();
             DbContextOptions<ApplicationDbContext> contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")).Options;
             using (ApplicationDbContext Db = new ApplicationDbContext(contextOptions))
