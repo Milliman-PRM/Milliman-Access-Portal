@@ -8,7 +8,6 @@
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib.Event;
