@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using Serilog;
 using System;
 using System.Collections.Generic;
