@@ -8,7 +8,6 @@
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib.Event;
@@ -16,7 +15,6 @@ using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Npgsql;
-using MapDbContextLib.Context;
 
 namespace AuditLogLib
 {

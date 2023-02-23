@@ -7,12 +7,10 @@
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Npgsql;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace MapTests
