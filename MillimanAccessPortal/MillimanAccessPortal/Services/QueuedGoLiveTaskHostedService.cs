@@ -387,14 +387,14 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
                                     _ => null,
                                 },
-                                LiveContainerStorageShareNames = containerizedAppTypeSpecificProperties.PreviewContainerStorageShareNames,
+                                LiveShareDetails = containerizedAppTypeSpecificProperties.PreviewShareDetails,
 
                                 PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                 PreviewContainerInternalPort = 0,
                                 PreviewContainerRamGb = ContainerRamGbEnum.Unspecified,
                                 PreviewImageName = null,
                                 PreviewImageTag = null,
-                                PreviewContainerStorageShareNames = default,
+                                PreviewShareDetails = default,
                             };
                             break;
                     }
@@ -451,13 +451,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
                                             successActionList.Add(async () => {
                                                 AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
-                                                foreach (var shareInfo in containerizedAppTypeSpecificProperties.LiveContainerStorageShareNames)
+                                                foreach (var shareInfo in containerizedAppTypeSpecificProperties.LiveShareDetails)
                                                 {
                                                     ///<see cref="https://indy-github.milliman.com/PRM/Milliman-Access-Portal/issues/2028"/>
                                                     // if (needed) TODO - what should this logic be?
                                                     {
                                                         // TODO Create the share (and populate data) as needed 
-                                                        string newShareName = await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.Key, false, true);
+                                                        string newShareName = await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.UserShareName, false, true);
                                                         ContainerizedAppContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties; ;
                                                         //typeSpecificProperties.LiveContainerStorageShareNames = 
                                                     }

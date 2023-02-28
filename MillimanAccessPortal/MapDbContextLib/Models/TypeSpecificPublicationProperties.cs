@@ -100,15 +100,16 @@ namespace MapDbContextLib.Models
     public enum ContainerShareContentsAction
     {
         [Display(Name = "Replace All")]
-        ReplaceAll = 0,
+        DeletePrevious = 0,
         [Display(Name = "Overwrite Conflicts")]
-        OverwriteConflicts = 1,
+        OverwritePrevious = 1,
     }
 
     public class ContainerSharePublicationInfo
     {
-        public string ShareName { get; set; }
-        public ContainerShareContentsAction Action { get; set; } = ContainerShareContentsAction.ReplaceAll;
+        public string UserShareName { get; set; }
+        public string AzureShareName { get; set; } = string.Empty;
+        public ContainerShareContentsAction Action { get; set; } = ContainerShareContentsAction.DeletePrevious;
     }
 
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase

@@ -28,6 +28,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -410,32 +411,34 @@ namespace MillimanAccessPortal.Services
                         containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                         containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
 
-                        #region Establish container storage resources as needed (should this be encapsulated in another method?)
-                        if (containerizedAppPubProperties.DataPersistenceEnabled /* || liveContentHasPersistenceEnabled */)
+                        #region Establish preview container storage resources as needed (should this be encapsulated in another method?)
+                        if (containerizedAppPubProperties.DataPersistenceEnabled || 
+                            containerContentItemProperties.LiveShareDetails.Any(d => d.Action == ContainerShareContentsAction.OverwritePrevious))
                         {
-                            var cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
+                            AzureResourceApi cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
 
                             // When we support multiple shares we probably get a collection of names from containerizedAppPubProperties
-                            string[] shareNames = new[] { "main" };
+                            IEnumerable<ContainerSharePublicationInfo> newSharesInfo = containerizedAppPubProperties.ShareInfo
+                                .Where(i => !containerContentItemProperties.LiveShareDetails.Select(l => l.UserShareName).Contains(i.UserShareName));
 
-                            containerContentItemProperties.PreviewContainerStorageShareNames = new Dictionary<string, string>();
-                            foreach (string shareName in shareNames)
+                            // containerContentItemProperties.PreviewShareDetails = new Dictionary<string, string>(); // This property already has a default, is this needed?
+//                          foreach (var shareInfo in previewSharesNeeded)
                             {
                                 // Terminology: Here we establish *share*(s).  Later when we spin up a container group, a 
                                 // *share* becomes *mounted* to the group and is available as a *volume* to each container in the group
-                                string newPreviewShareName = await cloudApi.CreateFileShare(contentItem.Id, shareName, true, true);
-                                containerContentItemProperties.PreviewContainerStorageShareNames.Add(shareName, newPreviewShareName);
+//                              string newPreviewShareName = await cloudApi.CreateFileShare(contentItem.Id, shareName, true, true);
+//                              containerContentItemProperties.PreviewContainerStorageShareNames.Add(shareName, newPreviewShareName);
 
                                 // When we support multiple shares figure out how to handle uploaded zip file(s) and extract each zip to the appropriate share
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.StartsWith("ContainerPersistedData", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewShareName);
+//                                  await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewShareName);
                                 }
-                                else if (containerContentItemProperties.LiveContainerStorageShareNames.Any(n => n.Key.Contains(shareName)))
-                                {
-                                    await cloudApi.DuplicateShareContents(containerContentItemProperties.LiveContainerStorageShareNames[shareName], newPreviewShareName);
-                                }
+//                              else if (containerContentItemProperties.LiveContainerStorageShareNames.Any(n => n.Key.Contains(shareName)))
+//                              {
+//                                  await cloudApi.DuplicateShareContents(containerContentItemProperties.LiveContainerStorageShareNames[shareName], newPreviewShareName);
+//                              }
                             }
 
                         }
@@ -479,7 +482,7 @@ namespace MillimanAccessPortal.Services
                                                                          vnetId,
                                                                          vnetName,
                                                                          true,
-                                                                         containerContentItemProperties.PreviewContainerStorageShareNames,
+                                                                         containerContentItemProperties.PreviewShareDetails,
                                                                          new Dictionary<string, string> { { "PathBase", contentToken },
                                                                                                           { "MAP_URL_PATH_BASE", contentToken },
                                                                                                           { "MAP_CHECK", "1" } },

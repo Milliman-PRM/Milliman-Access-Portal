@@ -3,6 +3,7 @@ using ContainerizedAppLib.AzureRestApiModels;
 using Flurl.Http;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -510,7 +511,7 @@ namespace ContainerizedAppLib
                                                string vnetId, 
                                                string vnetName,
                                                bool blockUntilStarted,
-                                               IDictionary<string,string> shareNames = null,
+                                               List<ContainerSharePublicationInfo> shareInfo = null,
                                                Dictionary<string, string> EnvironmentVariables = null,
                                                Guid? clientId = null,
                                                params ushort[] containerPorts)
@@ -527,7 +528,7 @@ namespace ContainerizedAppLib
                                                                cpuCoreCount, 
                                                                memorySizeInGB, 
                                                                resourceTags,
-                                                               shareNames, 
+                                                               shareInfo, 
                                                                vnetId, 
                                                                vnetName, 
                                                                EnvironmentVariables,
@@ -652,7 +653,7 @@ namespace ContainerizedAppLib
                                                       int cpuCoreCount, 
                                                       double memorySizeInGB, 
                                                       ContainerGroupResourceTags resourceTags,
-                                                      IDictionary<string,string> shareNames,
+                                                      List<ContainerSharePublicationInfo> shareInfo,
                                                       string vnetId = null, 
                                                       string vnetName = null, 
                                                       Dictionary<string, string> EnvironmentVariables = null, 
@@ -707,7 +708,7 @@ namespace ContainerizedAppLib
                                             MemoryInGB = memorySizeInGB,
                                         }
                                     },
-                                    VolumeMounts = shareNames?.Any() ?? false
+                                    VolumeMounts = shareInfo?.Any() ?? false
                                         ? new List<VolumeMount> ()  // Populated below
                                         : null
                                 }
@@ -741,17 +742,17 @@ namespace ContainerizedAppLib
                     Tags = resourceTags
                 };
 
-                if (shareNames?.Any() ?? false && clientId.HasValue)
+                if (shareInfo?.Any() ?? false && clientId.HasValue)
                 {
                     AzureResourceApi azureApi = new AzureResourceApi(clientId.Value, CredentialScope.Storage);
                     StorageAccountInfo storageAccountInfo = azureApi.GetStorageAccountInfo();
 
-                    requestModel.Properties.Volumes = new List<Volume>(shareNames.Select(s => new Volume 
+                    requestModel.Properties.Volumes = new List<Volume>(shareInfo.Select(s => new Volume 
                     {
-                        Name = s.Key, 
+                        Name = s.UserShareName, 
                         AzureFile = new AzureFileVolume 
                         {
-                            ShareName = s.Value, 
+                            ShareName = s.AzureShareName, 
                             ReadOnly = false,
                             StorageAccountName = storageAccountInfo.Name,
                             StorageAccountKey = storageAccountInfo.Keys[0]
@@ -759,16 +760,16 @@ namespace ContainerizedAppLib
                     }));
 
                     // Mount each share in the name list to container(s) in the group (currently only one)
-                    requestModel.Properties.Containers.ForEach(c => c.Properties.VolumeMounts.AddRange(shareNames.Select(s => new VolumeMount 
+                    requestModel.Properties.Containers.ForEach(c => c.Properties.VolumeMounts.AddRange(shareInfo.Select(s => new VolumeMount 
                     { 
-                        MountPath = $"/mnt/map-{s.Key}", 
-                        Name = s.Key, 
+                        MountPath = $"/mnt/map-{s.UserShareName}", 
+                        Name = s.AzureShareName, 
                         ReadOnly = false 
                     })));
 
-                    List<string> mountPaths = shareNames.Select(n => $"/mnt/map-{n.Key}").ToList();
+                    List<string> mountPaths = shareInfo.Select(n => $"/mnt/map-{n.UserShareName}").ToList();
                     requestModel.Properties.Containers.ForEach(c => c.Properties.EnvironmentVariables.Add(
-                        shareNames.Count switch
+                        shareInfo.Count switch
                         {
                             1 => new ContainerProperties.EnvironmentVariable
                             {
@@ -779,7 +780,7 @@ namespace ContainerizedAppLib
                                  new ContainerProperties.EnvironmentVariable
                             {
                                 Name = "MAP_DATA_MOUNTS_JSON",
-                                Value = System.Text.Json.JsonSerializer.Serialize(shareNames)
+                                Value = System.Text.Json.JsonSerializer.Serialize(shareInfo.Select(s => new { k = s.UserShareName, v = s.AzureShareName }))
                             }
                         }));
                 }

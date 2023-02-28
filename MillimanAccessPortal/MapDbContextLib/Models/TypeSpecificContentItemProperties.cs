@@ -45,7 +45,7 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort LiveContainerInternalPort { get; set; } = 0;
-        public Dictionary<string, string> LiveContainerStorageShareNames { get; set; } = null;
+        public List<ContainerSharePublicationInfo> LiveShareDetails { get; set; } = new List<ContainerSharePublicationInfo>();
 
         [JsonConverter(typeof(LifetimeSchemeConverter))]
         public LifetimeSchemeBase LiveContainerLifetimeScheme { get; set; } = null;
@@ -55,7 +55,7 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort PreviewContainerInternalPort { get; set; } = 0;
-        public Dictionary<string,string> PreviewContainerStorageShareNames { get; set; } = null;
+        public List<ContainerSharePublicationInfo> PreviewShareDetails { get; set; } = new List<ContainerSharePublicationInfo>();
 
         #region Lifetime management
         public abstract class LifetimeSchemeBase
@@ -99,7 +99,10 @@ namespace MapDbContextLib.Models
             returnValue |= LiveContainerRamGb != requestProps.ContainerRamGb;
             returnValue |= LiveContainerInternalPort != requestProps.ContainerInternalPort;
             returnValue |= LiveContainerLifetimeScheme is null || LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
-            returnValue |= requestProps.DataPersistenceEnabled && (LiveContainerStorageShareNames is null || !LiveContainerStorageShareNames.Any());
+
+            HashSet<string> liveShareNames = LiveShareDetails.Select(d => d.UserShareName).ToHashSet();
+            IEnumerable<string> newShareNames = requestProps.ShareInfo.Select(i => i.UserShareName);
+            returnValue |= requestProps.DataPersistenceEnabled && (LiveShareDetails is null || !liveShareNames.SetEquals(newShareNames));
 
             if (LiveContainerLifetimeScheme != null && 
                 LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && 
