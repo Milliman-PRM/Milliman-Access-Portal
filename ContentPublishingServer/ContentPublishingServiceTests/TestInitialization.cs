@@ -14,6 +14,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using TestResourcesLib;
+using Npgsql;
 
 namespace ContentPublishingServiceTests
 {
@@ -4452,10 +4453,12 @@ namespace ContentPublishingServiceTests
 
         internal ApplicationDbContext CreateDbContext(string connectionString)
         {
-            var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                                    .UseNpgsql(connectionString, o => o.SetPostgresVersion(9, 6))
-                                    .Options;
-            return new ApplicationDbContext(dbOptions);
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+            DbContextOptions<ApplicationDbContext> contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
+
+            return new ApplicationDbContext(contextOptions);
         }
     }
 }

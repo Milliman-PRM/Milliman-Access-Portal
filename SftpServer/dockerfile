@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-jammy
 
 COPY SftpServer/out/* /app/
 COPY UtilityScripts/startsftpserver.sh /app/

@@ -11,6 +11,7 @@ using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -69,8 +70,10 @@ namespace MillimanAccessPortal
         {
             ContentReductionTask thisContentReductionTask = null;
 
-            DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
-            DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+            DbContextOptions<ApplicationDbContext> ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")).Options;
 
             do
             {
@@ -250,8 +253,10 @@ namespace MillimanAccessPortal
         {
             GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"LongRunningUpdateSelectionCodeAsync  started for reduction task {reductionTask.Id.ToString()}");
 
-            DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
-            DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+            DbContextOptions<ApplicationDbContext> ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")).Options;
 
             ReductionStatusEnum resultingStatus = ReductionStatusEnum.Error;  // initialize
             switch (reductionTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)

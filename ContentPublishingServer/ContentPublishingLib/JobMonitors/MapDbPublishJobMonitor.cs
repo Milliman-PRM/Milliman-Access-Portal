@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using Npgsql;
 using ContentPublishingLib.JobRunners;
 
 namespace ContentPublishingLib.JobMonitors
@@ -82,9 +83,10 @@ namespace ContentPublishingLib.JobMonitors
         {
             set
             {
-                DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                ContextBuilder.UseNpgsql(value);
-                ContextOptions = ContextBuilder.Options;
+                NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(value);
+                ApplicationDbContext.MapEnums(dataSourceBuilder);
+                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+                ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
                 _ConnectionString = value;
             }
             private get

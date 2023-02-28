@@ -208,6 +208,11 @@ namespace MapDbContextLib.Context
         public string OutcomeMetadata { get; set; } = "{}";
 
         /// <summary>
+        /// Used as a concurrency token.  No semantic meaning in the MAP domain information model
+        /// </summary>
+        public uint Version { get; set; }
+
+        /// <summary>
         /// Identifies files associated with work of the publishing server (input and output)
         /// </summary>
         [NotMapped]

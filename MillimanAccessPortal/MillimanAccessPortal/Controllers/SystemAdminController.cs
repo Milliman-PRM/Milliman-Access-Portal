@@ -1086,7 +1086,8 @@ namespace MillimanAccessPortal.Controllers
                 try
                 {
                     List<ApplicationUser> usersToReset = await _dbContext.ApplicationUser
-                                                                         .Where(u => u.UserAgreementAcceptedUtc > DateTime.MinValue)
+                                                                         .Where(u => u.UserAgreementAcceptedUtc.HasValue && 
+                                                                                     u.UserAgreementAcceptedUtc > new DateTime(DateTime.MinValue.Ticks, DateTimeKind.Utc))
                                                                          .ToListAsync();
 
                     usersToReset.ForEach(u => u.UserAgreementAcceptedUtc = DateTime.MinValue);

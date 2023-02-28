@@ -8,7 +8,7 @@ namespace MillimanAccessPortal.ContentProxy
 {
     public class MapContainerContentTransformProvider : ITransformProvider
     {
-        private Uri? _targetUri;
+        private Uri _targetUri;
 
         /// <summary>
         /// Validates any route data needed for transforms.

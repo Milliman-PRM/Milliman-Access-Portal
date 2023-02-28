@@ -19,6 +19,7 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Newtonsoft.Json;
+using Npgsql;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -47,9 +48,10 @@ namespace ContentPublishingLib.JobRunners
         {
             set
             {
-                DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                ContextBuilder.UseNpgsql(value);
-                ContextOptions = ContextBuilder.Options;
+                NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(value);
+                ApplicationDbContext.MapEnums(dataSourceBuilder);
+                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+                ContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
             }
         }
 
