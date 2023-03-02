@@ -150,6 +150,11 @@ namespace MapDbContextLib.Context
         [Column(TypeName = "jsonb")]
         public string MasterContentHierarchy { get; set; }
 
+        /// <summary>
+        /// Used as a concurrency token.  No semantic meaning in the MAP domain information model
+        /// </summary>
+        public uint Version { get; set; }
+
         [NotMapped]
         public ContentReductionHierarchy<ReductionFieldValue> MasterContentHierarchyObj
         {

@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.17.8
+
+- Fixed a bug that allowed idle user sessions to remain open beyond the normal expiration time
+
 ### v1.17.7
 
 - Fixed a bug which prevented users from viewing the bottom section in the Authorized Content view

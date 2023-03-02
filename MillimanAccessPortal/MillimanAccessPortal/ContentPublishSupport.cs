@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Npgsql;
 
 namespace MillimanAccessPortal
 {
@@ -69,14 +70,15 @@ namespace MillimanAccessPortal
                                                                   string exchangePath, 
                                                                   IPublicationPostProcessingTaskQueue postProcessingTaskQueue)
         {
-            DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
-            DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
-
             #region Wait till all uploads are "valid"
             bool validationWindowComplete = false;
 
             ContentPublicationRequest publicationRequest;
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+            DbContextOptions<ApplicationDbContext> contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")).Options;
+            using (ApplicationDbContext Db = new ApplicationDbContext(contextOptions))
             {
                 publicationRequest = await Db.ContentPublicationRequest
                                             .SingleAsync(r => r.Id == publicationRequestId);
@@ -92,7 +94,7 @@ namespace MillimanAccessPortal
                 Thread.Sleep(2000);
                 DateTime queueWhenOlderThanDateTimeUtc = DateTime.UtcNow - TimeSpan.FromSeconds(GlobalFunctions.VirusScanWindowSeconds);
 
-                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = new ApplicationDbContext(contextOptions))
                 {
                     List<FileUpload> fileUploadRecords = await Db.FileUpload
                                                                         .Where(u => fileUploadIds.Contains(u.Id))
@@ -116,7 +118,7 @@ namespace MillimanAccessPortal
             while (!validationWindowComplete);
             #endregion
 
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = new ApplicationDbContext(contextOptions))
             {
                 publicationRequest = await Db.ContentPublicationRequest
                                                 .Include(p => p.RootContentItem)
@@ -203,7 +205,7 @@ namespace MillimanAccessPortal
                     await Db.SaveChangesAsync();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
                 }
-                catch (DbUpdateConcurrencyException ex)
+                catch (DbUpdateConcurrencyException)
                 {
                     // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;

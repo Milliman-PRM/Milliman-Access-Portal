@@ -16,6 +16,7 @@ using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 
 namespace MillimanAccessPortal
 {
@@ -30,8 +31,11 @@ namespace MillimanAccessPortal
             IConfiguration cfg = cfgBuilder.Build();
 
             var connectionString = cfg.GetConnectionString("DefaultConnection");
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            var dataSource = dataSourceBuilder.Build();
 
-            var contextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString, b => b.MigrationsAssembly("MillimanAccessPortal"));
+            DbContextOptionsBuilder<ApplicationDbContext> contextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal"));
             ApplicationDbContext newContext = new ApplicationDbContext(contextOptionsBuilder.Options);
 
             return newContext;

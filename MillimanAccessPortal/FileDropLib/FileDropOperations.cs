@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using MapDbContextLib.Identity;
 using Prm.EmailQueue;
 using MapDbContextLib.Models;
+using Npgsql;
 
 namespace FileDropLib
 {
@@ -32,9 +33,10 @@ namespace FileDropLib
         {
             set
             {
-                DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                ContextBuilder.UseNpgsql(value);
-                MapDbContextOptions = ContextBuilder.Options;
+                NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(value);
+                ApplicationDbContext.MapEnums(dataSourceBuilder);
+                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+                MapDbContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
             }
         }
         private static DbContextOptions<ApplicationDbContext> MapDbContextOptions = null;
