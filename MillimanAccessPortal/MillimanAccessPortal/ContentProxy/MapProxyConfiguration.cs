@@ -9,7 +9,7 @@ namespace MillimanAccessPortal.ContentProxy
     {
         private readonly CancellationTokenSource _cts = new();
 
-        public MapProxyConfiguration(IReadOnlyList<RouteConfig>? routes = null, IReadOnlyList<ClusterConfig>? clusters = null)
+        public MapProxyConfiguration(IReadOnlyList<RouteConfig> routes = null, IReadOnlyList<ClusterConfig> clusters = null)
         {
             Routes = routes ?? new List<RouteConfig>();
             Clusters = clusters ?? new List<ClusterConfig>();

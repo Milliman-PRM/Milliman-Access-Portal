@@ -17,11 +17,11 @@ namespace MillimanAccessPortal.ContentProxy
         // Implementation of the base interface signature
         public IProxyConfig GetConfig() => _proxyConfig;
 
-        private void UpdateConfiguration(IReadOnlyList<RouteConfig>? routes, IReadOnlyList<ClusterConfig>? clusters, bool logNewConfig = true)
+        private void UpdateConfiguration(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters, bool logNewConfig = true)
         {
             lock(_proxyConfig)
             {
-                MapProxyConfiguration? oldConfig = _proxyConfig;
+                MapProxyConfiguration oldConfig = _proxyConfig;
                 _proxyConfig = new MapProxyConfiguration(routes, clusters);
                 oldConfig?.SignalChange();
 
@@ -115,7 +115,7 @@ namespace MillimanAccessPortal.ContentProxy
             AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
         }
 
-        private void AddNewConfigs(IEnumerable<RouteConfig> routes, ClusterConfig? cluster)
+        private void AddNewConfigs(IEnumerable<RouteConfig> routes, ClusterConfig cluster)
         {
             List<RouteConfig> newRoutes = _proxyConfig.Routes.ToList();
             foreach (var route in routes)

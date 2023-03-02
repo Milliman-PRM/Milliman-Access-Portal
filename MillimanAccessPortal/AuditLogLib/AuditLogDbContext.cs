@@ -8,13 +8,13 @@
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib.Event;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using Npgsql;
 
 namespace AuditLogLib
 {
@@ -32,9 +32,11 @@ namespace AuditLogLib
                 ConnectionString = GetConfiguredConnectionString();  // I could pass a connection string name to get a designated configured value
             }
 
-            var builder = new DbContextOptionsBuilder<AuditLogDbContext>();
-            builder.UseNpgsql(ConnectionString);
-            return new AuditLogDbContext(builder.Options);
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+            DbContextOptions<AuditLogDbContext> contextOptions = new DbContextOptionsBuilder<AuditLogDbContext>().UseNpgsql(dataSource).Options;
+
+            return new AuditLogDbContext(contextOptions);
         }
 
         public DbSet<AuditEvent> AuditEvent { get; set; }
@@ -60,16 +62,14 @@ namespace AuditLogLib
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
-            if (builder.IsConfigured)
+            if (!builder.IsConfigured)
             {
-                RelationalOptionsExtension extension = builder.Options.Extensions.OfType<RelationalOptionsExtension>().First();
-                string connectionString = extension.ConnectionString;
-                builder.UseNpgsql(connectionString);
-            }
-            else
-            {
-                // This block supports ef migration add, where no connection string is provided through dependency injection
-                builder.UseNpgsql(GetConfiguredConnectionString());
+                // This block supports ef migration operations, where no connection string is available through dependency injection
+
+                var connectionString = GetConfiguredConnectionString();
+                NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+                var dataSource = dataSourceBuilder.Build();
+                builder.UseNpgsql(dataSource);
             }
         }
 
