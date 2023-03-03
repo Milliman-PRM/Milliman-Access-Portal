@@ -289,14 +289,14 @@ namespace CloudResourceLib
         /// </summary>
         /// <param name="fileShareName"></param>
         /// <returns></returns>
-        public async Task<string> CreateFileShare(Guid contentItemId, string name, bool isPreview, bool replace)
+        public async Task<string> CreateFileShare(Guid contentItemId, string shortName, bool isPreview, bool replace)
         {
             FileShareCollection fileShareCollection = _fileService.GetFileShares();
-            List<string> existingShareNames = GetExistingShareNamesForContent(contentItemId, name, isPreview);
+            List<string> existingShareNames = GetExistingShareNamesForContent(contentItemId, shortName, isPreview);
 
             try
             {
-                string newFileShareName = GenerateUniqueNewShareName(contentItemId, name, isPreview);
+                string newFileShareName = GenerateUniqueNewShareName(contentItemId, shortName, isPreview);
 
                 // Generate new name first because after shareClient.DeleteIfExistsAsync an existing name is not found while delete is not completed
                 if (replace)
@@ -329,7 +329,7 @@ namespace CloudResourceLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Error creating Azure file share for: contentItemId=<{contentItemId}>, name=<{name}>, isPreview=<{isPreview}>");  // temporary or improve
+                Log.Warning(ex, $"Error creating Azure file share for: contentItemId=<{contentItemId}>, shortName=<{shortName}>, isPreview=<{isPreview}>");  // temporary or improve
                 throw;
             }
         }
@@ -475,7 +475,7 @@ namespace CloudResourceLib
             }
         }
 
-        public async Task UploadFileToShare(string fileName, string fileShareName, string destinationFileFullPath)
+        public async Task<bool> UploadFileToShare(string fileName, string fileShareName, string destinationFileFullPath, bool overwriteIfExisting)
         {
             try
             {
@@ -497,6 +497,17 @@ namespace CloudResourceLib
                 }
 
                 ShareFileClient targetFileClient = directoryClient.GetFileClient(destinationFileName);
+                if (targetFileClient.Exists())
+                {
+                    if (overwriteIfExisting)
+                    {
+                        await targetFileClient.DeleteAsync();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
 
                 FileInfo fileInfo = new FileInfo(fileName);
                 targetFileClient.Create(fileInfo.Length);
@@ -505,6 +516,8 @@ namespace CloudResourceLib
                 {
                     targetFileClient.Upload(sourceFileStream);
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
