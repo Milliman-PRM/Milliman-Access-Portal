@@ -10,7 +10,7 @@ import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
   AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerInstanceLifetimeSchemeEnum,
-  ContainerRamGbEnum, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
+  ContainerRamGbEnum, ContainerSharePublicationInfo, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -102,6 +102,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     endTime: '17:00:00',
     timeZoneId: '',
     dataPersistenceEnabled: false,
+    shareInfo: [],
   },
 };
 
@@ -671,6 +672,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.dataPersistenceEnabled ?
           action.response.typeSpecificPublicationProperties.dataPersistenceEnabled :
           emptyContentItemDetail.typeSpecificPublicationProperties.dataPersistenceEnabled,
+        shareInfo: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.shareInfo ?
+          action.response.typeSpecificPublicationProperties.shareInfo :
+          emptyContentItemDetail.typeSpecificPublicationProperties.shareInfo,
       },
       relatedFiles: {
         MasterContent: {
@@ -1060,6 +1065,16 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   BEGIN_FILE_UPLOAD: (state, action: UploadActions.BeginFileUpload) => {
     const relatedFiles: RelatedFiles = { ...state.pendingFormData.relatedFiles };
     const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.pendingFormData.associatedFiles };
+    const typeSpecificPublicationDetails = { ...state.pendingFormData.typeSpecificPublicationProperties };
+
+    if (action.uploadId.startsWith('ContainerPersistedData') && typeSpecificPublicationDetails.dataPersistenceEnabled) {
+      const newShareInfo: ContainerSharePublicationInfo = {
+        azureShareName: 'ContainerPersistedData-main',
+        userShareName: 'main',
+        action: 0, // Hardcoded replace all for now
+      };
+      typeSpecificPublicationDetails.shareInfo.push(newShareInfo);
+    }
 
     if (action.fileName.split('-')[0] !== 'associatedContent') {
       const relatedFilesKeys = Object.keys(state.pendingFormData.relatedFiles);
@@ -1096,6 +1111,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         associatedFiles: {
           ...associatedFiles,
         },
+        typeSpecificPublicationProperties: typeSpecificPublicationDetails,
       },
       uploads: {
         ...state.uploads,
