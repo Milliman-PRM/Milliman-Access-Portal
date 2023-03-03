@@ -334,7 +334,7 @@ namespace CloudResourceLib
             }
         }
 
-        public async Task ExtractCompressedFileToShare(string fileFullPath, string shareName)
+        public async Task ExtractCompressedFileToShare(string fileFullPath, string shareName, bool overwriteExistingFiles)
         {
             if (!File.Exists(fileFullPath))
             {
@@ -355,7 +355,7 @@ namespace CloudResourceLib
                             try
                             {
                                 entry.ExtractToFile(tempFileName);
-                                await UploadFileToShare(tempFileName, shareName, entry.FullName);
+                                await UploadFileToShare(tempFileName, shareName, entry.FullName, overwriteExistingFiles);
                             }
                             finally
                             {
@@ -475,7 +475,7 @@ namespace CloudResourceLib
             }
         }
 
-        public async Task<bool> UploadFileToShare(string fileName, string fileShareName, string destinationFileFullPath, bool overwriteIfExisting)
+        public async Task<bool> UploadFileToShare(string fileName, string fileShareName, string destinationFileFullPath, bool overwriteExistingFiles)
         {
             try
             {
@@ -497,16 +497,9 @@ namespace CloudResourceLib
                 }
 
                 ShareFileClient targetFileClient = directoryClient.GetFileClient(destinationFileName);
-                if (targetFileClient.Exists())
+                if (targetFileClient.Exists() && !overwriteExistingFiles)
                 {
-                    if (overwriteIfExisting)
-                    {
-                        await targetFileClient.DeleteAsync();
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 FileInfo fileInfo = new FileInfo(fileName);

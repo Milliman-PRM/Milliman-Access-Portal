@@ -446,7 +446,7 @@ namespace MillimanAccessPortal.Services
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{liveShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName);
+                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
                                 }
                             }
 
@@ -465,7 +465,7 @@ namespace MillimanAccessPortal.Services
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{newShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName);
+                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, newShareInfo.Action == ContainerShareContentsAction.OverwritePrevious);
                                 }
                             }
 
