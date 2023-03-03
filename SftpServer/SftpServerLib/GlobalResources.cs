@@ -42,9 +42,10 @@ namespace SftpServerLib
         {
             set
             {
-                DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                ContextBuilder.UseNpgsql(value);
-                MapDbContextOptions = ContextBuilder.Options;
+                NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(value);
+                ApplicationDbContext.MapEnums(dataSourceBuilder);
+                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+                MapDbContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
             }
         }
 
