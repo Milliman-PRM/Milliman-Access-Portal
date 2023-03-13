@@ -254,7 +254,7 @@ namespace MillimanAccessPortal.Controllers
             // If creating a new user, current user must either have global UserCreator role or UserCreator role for requested client
             if (RequestedUserIsNew)
             {
-                if (Model.MemberOfClientId == null)
+                if (Model.MemberOfClientId == default)
                 {
                     AuthorizationResult GlobalUserCreatorResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.UserCreator));
                     if (!GlobalUserCreatorResult.Succeeded)
@@ -287,7 +287,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // If a client assignment is requested, user must be admin for the requested client
-            if (Model.MemberOfClientId != null)
+            if (Model.MemberOfClientId != default)
             {
                 AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.MemberOfClientId));
                 if (!Result2.Succeeded)
@@ -1248,7 +1248,7 @@ namespace MillimanAccessPortal.Controllers
             Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
 
             #region Preliminary Validation
-            if (Model.Id == null || Model.Id == Guid.Empty)
+            if (Model.Id == default)
             {
                 Log.Debug("In ClientAdminController.EditClient action: no client ID provided");
                 return BadRequest($"Requested Client.Id ({Model.Id}) not valid");
@@ -1585,12 +1585,12 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser RequestedAccount = await DbContext.Users.FindAsync(Model.UserId);
 
             #region Preliminary Validation
-            if (Model.ClientId == null || Model.ClientId == Guid.Empty || (Model.UserId == null || Model.UserId == Guid.Empty))
+            if (Model.ClientId == default || (Model.UserId == default))
             {
                 Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: no client ID provided");
                 return BadRequest("An error has occcurred.");
             }
-            if (Model.UserId == null || Model.UserId == Guid.Empty)
+            if (Model.UserId == default)
             {
                 Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: no user ID provided");
                 return BadRequest("An error has occcurred.");

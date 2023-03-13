@@ -54,10 +54,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
-using MillimanAccessPortal.Models.SharedModels;
-using ContainerizedAppLib;
 using Npgsql;
 using Microsoft.Extensions.Logging;
 

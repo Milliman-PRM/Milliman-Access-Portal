@@ -1021,7 +1021,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> DownloadFile(Guid FileDropId, Guid FileDropFileId, string CanonicalFilePath)
         {
-            if (FileDropId == null || FileDropFileId == null || CanonicalFilePath == null || ModelState.ErrorCount > 0)
+            if (FileDropId == default || FileDropFileId == default || CanonicalFilePath == null || ModelState.ErrorCount > 0)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid ModelState, errors are: {string.Join("; ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}");
                 Response.Headers.Add("Warning", "Invalid request.");

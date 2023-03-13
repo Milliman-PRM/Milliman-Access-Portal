@@ -22,11 +22,11 @@ namespace MillimanAccessPortal.ContentProxy
         //     Transforms the given response. The status and headers will have (optionally)
         //     already been copied to the Microsoft.AspNetCore.Http.HttpResponse and any changes
         //     should be made there.
-        public override async ValueTask ApplyAsync(ResponseTransformContext context)
+        public override ValueTask ApplyAsync(ResponseTransformContext context)
         {
             if (context.ProxyResponse is null)
             {
-                return;
+                return ValueTask.CompletedTask;
             }
 
             switch (context.HttpContext.Response.StatusCode)
@@ -61,6 +61,8 @@ namespace MillimanAccessPortal.ContentProxy
                     }
                     break;
             }
+
+            return ValueTask.CompletedTask;
         }
     }
 }

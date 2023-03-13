@@ -301,7 +301,7 @@ namespace MillimanAccessPortal.Controllers
             var hasMediaTypeHeader = MediaTypeHeaderValue
                 .TryParse(section.ContentType, out MediaTypeHeaderValue mediaType);
             // Use UTF-8 instead of UTF-7 if it is requested
-            if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
+            if (!hasMediaTypeHeader || mediaType.Encoding.Equals(Encoding.UTF7))
             {
                 return Encoding.UTF8;
             }

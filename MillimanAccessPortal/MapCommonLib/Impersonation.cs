@@ -7,12 +7,13 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
 
 namespace MapCommonLib
 {
-
+    [SupportedOSPlatform("windows")]
     public class Impersonation : IDisposable
     {
         // These support various types of LogonUser() requests.  From winbase.h
