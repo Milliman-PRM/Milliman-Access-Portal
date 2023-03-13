@@ -358,6 +358,8 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
         pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
       dataPersistenceEnabled: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
+      shareInfo: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
+        pendingFormData.typeSpecificPublicationProperties.shareInfo,
     };
 
     if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
