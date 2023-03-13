@@ -1,4 +1,4 @@
-import { ContentItemDetail } from '../react/models';
+import { ContainerSharePublicationInfo, ContentItemDetail } from '../react/models';
 import { Guid } from '../react/shared-components/interfaces';
 
 export interface Nestable {
@@ -192,9 +192,15 @@ export interface PublishRequest {
   newRelatedFiles?: UploadedRelatedFile[];
   associatedFiles?: RequestedAssociatedFile[];
   deleteFilePurposes?: string[];
-  typeSpecificPublishingDetail?: {
-    roleList?: string[];
-  };
+  typeSpecificPublishingDetail?: TypeSpecificPublishingDetail;
+}
+
+export interface TypeSpecificPublishingDetail {
+  // PowerBI
+  roleList?: string[];
+  // Containerized App
+  dataPersistenceEnabled?: boolean;
+  shareInfo?: ContainerSharePublicationInfo[];
 }
 
 export interface PreLiveContentValidationSummary {
