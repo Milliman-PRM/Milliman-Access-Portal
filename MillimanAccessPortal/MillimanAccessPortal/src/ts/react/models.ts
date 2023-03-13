@@ -177,7 +177,6 @@ export interface TypeSpecificPublicationProperties {
   endTime?: string;
   timeZoneId?: string;
   dataPersistenceEnabled?: boolean;
-  shareInfo?: ContainerSharePublicationInfo[];
 }
 
 export interface GoLiveViewModel {

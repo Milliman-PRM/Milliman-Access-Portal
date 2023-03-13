@@ -357,7 +357,6 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerInstanceLifetimeScheme:
         pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
-      dataPersistenceEnabled: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
       shareInfo: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
         pendingFormData.typeSpecificPublicationProperties.shareInfo,
     };

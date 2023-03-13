@@ -134,7 +134,7 @@ namespace MapDbContextLib.Models
         public TimeSpan? StartTime { get; set; }
         [JsonConverter(typeof(TimeSpanJsonConverter))]
         public TimeSpan? EndTime { get; set; }
-        public string? TimeZoneId { get; set; }
+        public string TimeZoneId { get; set; }
 
         public bool DataPersistenceEnabled { get; set; } = false;
         public List<ContainerSharePublicationInfo> ShareInfo { get; set; } = new List<ContainerSharePublicationInfo>();

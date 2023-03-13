@@ -1067,15 +1067,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.pendingFormData.associatedFiles };
     const typeSpecificPublicationDetails = { ...state.pendingFormData.typeSpecificPublicationProperties };
 
-    if (action.uploadId.startsWith('ContainerPersistedData') && typeSpecificPublicationDetails.dataPersistenceEnabled) {
-      const newShareInfo: ContainerSharePublicationInfo = {
-        azureShareName: 'ContainerPersistedData-main',
-        userShareName: 'main',
-        action: 0, // Hardcoded replace all for now
-      };
-      typeSpecificPublicationDetails.shareInfo.push(newShareInfo);
-    }
-
     if (action.fileName.split('-')[0] !== 'associatedContent') {
       const relatedFilesKeys = Object.keys(state.pendingFormData.relatedFiles);
       for (const key of relatedFilesKeys) {
