@@ -417,28 +417,56 @@ namespace MillimanAccessPortal.Services
                         {
                             AzureResourceApi cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
 
-                            // When we support multiple shares we probably get a collection of names from containerizedAppPubProperties
+                            // When we support multiple shares we get multiple ContainerPublicationShareInfo from containerizedAppPubProperties
+                            // Currently no support for removal of any existing share
                             IEnumerable<ContainerSharePublicationInfo> newSharesInfo = containerizedAppPubProperties.ShareInfo
                                 .Where(i => !containerContentItemProperties.LiveShareDetails.Select(l => l.UserShareName).Contains(i.UserShareName));
 
-                            // containerContentItemProperties.PreviewShareDetails = new Dictionary<string, string>(); // This property already has a default, is this needed?
-//                          foreach (var shareInfo in previewSharesNeeded)
+                            IEnumerable<ContainerSharePublicationInfo> allPreviewSharesNeeded = containerContentItemProperties.LiveShareDetails.Concat(newSharesInfo);
+
+                            // existing live shares
+                            foreach (var liveShareInfo in containerContentItemProperties.LiveShareDetails)
                             {
                                 // Terminology: Here we establish *share*(s).  Later when we spin up a container group, a 
                                 // *share* becomes *mounted* to the group and is available as a *volume* to each container in the group
-//                              string newPreviewShareName = await cloudApi.CreateFileShare(contentItem.Id, shareName, true, true);
-//                              containerContentItemProperties.PreviewContainerStorageShareNames.Add(shareName, newPreviewShareName);
+                                string newPreviewAzureShareName = await cloudApi.CreateFileShare(contentItem.Id, liveShareInfo.UserShareName, true, true);
+                                containerContentItemProperties.PreviewShareDetails.Add(new ContainerSharePublicationInfo 
+                                { 
+                                    UserShareName = liveShareInfo.UserShareName, 
+                                    AzureShareName = newPreviewAzureShareName, 
+                                    Action = liveShareInfo.Action 
+                                });
+
+                                if (liveShareInfo.Action == ContainerShareContentsAction.OverwritePrevious)
+                                {
+                                    await cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
+                                }
 
                                 // When we support multiple shares figure out how to handle uploaded zip file(s) and extract each zip to the appropriate share
-                                ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.StartsWith("ContainerPersistedData", StringComparison.OrdinalIgnoreCase));
+                                ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{liveShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-//                                  await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewShareName);
+                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
                                 }
-//                              else if (containerContentItemProperties.LiveContainerStorageShareNames.Any(n => n.Key.Contains(shareName)))
-//                              {
-//                                  await cloudApi.DuplicateShareContents(containerContentItemProperties.LiveContainerStorageShareNames[shareName], newPreviewShareName);
-//                              }
+                            }
+
+                            // newly defined shares with this publication request
+                            foreach (var newShareInfo in newSharesInfo)
+                            {
+                                string newPreviewAzureShareName = await cloudApi.CreateFileShare(contentItem.Id, newShareInfo.UserShareName, true, true);
+
+                                containerContentItemProperties.PreviewShareDetails.Add(new ContainerSharePublicationInfo
+                                {
+                                    UserShareName = newShareInfo.UserShareName,
+                                    AzureShareName = newPreviewAzureShareName,
+                                    Action = newShareInfo.Action
+                                });
+
+                                ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{newShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
+                                if (zipFile != default)
+                                {
+                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, newShareInfo.Action == ContainerShareContentsAction.OverwritePrevious);
+                                }
                             }
 
                         }
