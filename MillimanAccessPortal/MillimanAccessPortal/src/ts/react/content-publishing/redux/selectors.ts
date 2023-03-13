@@ -5,8 +5,8 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContentItemPublicationDetail, ContentPublicationRequest,
-  ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
+  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContainerSharePublicationInfo, ContentItemPublicationDetail,
+  ContentPublicationRequest, ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
 
@@ -357,8 +357,17 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerInstanceLifetimeScheme:
         pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
-      dataPersistenceEnabled: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
+      shareInfo: [],
     };
+
+    if (pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled) {
+      const newShareInfo: ContainerSharePublicationInfo = {
+        azureShareName: 'ContainerPersistedData-main',
+        userShareName: 'main',
+        action: 0, // Hardcoded replace all for now
+      };
+      typeSpecificPublishingDetail.shareInfo.push(newShareInfo);
+    }
 
     if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
       === ContainerInstanceLifetimeSchemeEnum.Custom) {

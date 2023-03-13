@@ -177,6 +177,7 @@ export interface TypeSpecificPublicationProperties {
   endTime?: string;
   timeZoneId?: string;
   dataPersistenceEnabled?: boolean;
+  shareInfo?: ContainerSharePublicationInfo[];
 }
 
 export interface GoLiveViewModel {
@@ -237,6 +238,12 @@ export interface ContentItemFormErrors {
     timeZoneId?: string;
     dataPersistenceEnabled?: string;
   };
+}
+
+export interface ContainerSharePublicationInfo {
+  userShareName: string;
+  azureShareName: string;
+  action: number; // TODO may need to change to its own model/enumeration
 }
 
 export interface RootContentItemWithPublication extends RootContentItemWithStats {
