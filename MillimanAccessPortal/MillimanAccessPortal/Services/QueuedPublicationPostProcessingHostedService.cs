@@ -412,20 +412,12 @@ namespace MillimanAccessPortal.Services
                         containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
 
                         #region Establish preview container storage resources as needed (should this be encapsulated in another method?)
-                        if (containerizedAppPubProperties.DataPersistenceEnabled || 
-                            containerContentItemProperties.LiveShareDetails.Any(d => d.Action == ContainerShareContentsAction.OverwritePrevious))
+                        if (containerContentItemProperties.DataPersistenceEnabled && 
+                            containerContentItemProperties.LiveShareDetails.Any(d => d.Action != ContainerShareContentsAction.DeletePrevious))
                         {
                             AzureResourceApi cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
 
-                            // When we support multiple shares we get multiple ContainerPublicationShareInfo from containerizedAppPubProperties
-                            // Currently no support for removal of any existing share
-                            IEnumerable<ContainerSharePublicationInfo> newSharesInfo = containerizedAppPubProperties.ShareInfo
-                                .Where(i => !containerContentItemProperties.LiveShareDetails.Select(l => l.UserShareName).Contains(i.UserShareName));
-
-                            IEnumerable<ContainerSharePublicationInfo> allPreviewSharesNeeded = containerContentItemProperties.LiveShareDetails.Concat(newSharesInfo);
-
-                            // existing live shares
-                            foreach (var liveShareInfo in containerContentItemProperties.LiveShareDetails)
+                            foreach (ContainerSharePublicationInfo liveShareInfo in containerContentItemProperties.LiveShareDetails)
                             {
                                 // Terminology: Here we establish *share*(s).  Later when we spin up a container group, a 
                                 // *share* becomes *mounted* to the group and is available as a *volume* to each container in the group
@@ -437,9 +429,9 @@ namespace MillimanAccessPortal.Services
                                     Action = liveShareInfo.Action 
                                 });
 
-                                if (liveShareInfo.Action == ContainerShareContentsAction.OverwritePrevious)
+                                if (liveShareInfo.Action != ContainerShareContentsAction.DeletePrevious)
                                 {
-                                    await cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
+                                    cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
                                 }
 
                                 // When we support multiple shares figure out how to handle uploaded zip file(s) and extract each zip to the appropriate share
@@ -450,8 +442,13 @@ namespace MillimanAccessPortal.Services
                                 }
                             }
 
+                            // When we support multiple shares we get multiple ContainerPublicationShareInfo from containerizedAppPubProperties
+                            // Currently no support for removal of any existing share
+                            IEnumerable<ContainerSharePublicationInfo> newSharesInfo =
+                                containerizedAppPubProperties.ShareInfo.Where(i => !containerContentItemProperties.LiveShareDetails.Select(l => l.UserShareName).Contains(i.UserShareName));
+
                             // newly defined shares with this publication request
-                            foreach (var newShareInfo in newSharesInfo)
+                            foreach (ContainerSharePublicationInfo newShareInfo in newSharesInfo)
                             {
                                 string newPreviewAzureShareName = await cloudApi.CreateFileShare(contentItem.Id, newShareInfo.UserShareName, true, true);
 
