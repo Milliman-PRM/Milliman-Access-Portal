@@ -40,6 +40,8 @@ namespace MapDbContextLib.Models
 
     public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
     {
+        public bool DataPersistenceEnabled { get; init; }
+
         public string LiveImageName { get; set; } = null;
         public string LiveImageTag { get; set; } = null;
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
@@ -102,7 +104,7 @@ namespace MapDbContextLib.Models
 
             HashSet<string> liveShareNames = LiveShareDetails.Select(d => d.UserShareName).ToHashSet();
             IEnumerable<string> newShareNames = requestProps.ShareInfo.Select(i => i.UserShareName);
-            returnValue |= requestProps.DataPersistenceEnabled && (LiveShareDetails is null || !liveShareNames.SetEquals(newShareNames));
+            returnValue |= DataPersistenceEnabled && (LiveShareDetails is null || !liveShareNames.SetEquals(newShareNames));
 
             if (LiveContainerLifetimeScheme != null && 
                 LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && 
