@@ -402,7 +402,7 @@ namespace CloudResourceLib
         /// <param name="fileShareName"></param>
         /// <param name="directoryName"></param>
         /// <returns></returns>
-        public async Task ClearFileShare(string fileShareName, string directoryName)
+        public void ClearFileShare(string fileShareName, string directoryName)
         {
             var storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
@@ -552,7 +552,7 @@ namespace CloudResourceLib
             targetFileClient.Upload(source);
         }
 
-        public async Task DuplicateShareContents(string sourceShareName, string destinationShareName)
+        public void DuplicateShareContents(string sourceShareName, string destinationShareName)
         {
             Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
