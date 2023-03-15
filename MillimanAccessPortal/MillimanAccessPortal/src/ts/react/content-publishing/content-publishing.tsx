@@ -1094,19 +1094,19 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             checked={pendingFormData.typeSpecificPublicationProperties &&
                               pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled}
                             onClick={() => this.props.setPublishingFormBooleanInputValue({
-                                  inputName: 'dataPersistenceEnabled',
-                                  value: !pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
-                                })}
+                              inputName: 'dataPersistenceEnabled',
+                              value: !pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
+                            })}
                             readOnly={formStateIsReadOnly}
                           />
                         </div>
                       </FormFlexContainer>
                     </FormSectionRow>
-                    <FormSectionRow>
-                      {
-                        pendingFormData.typeSpecificPublicationProperties &&
-                        pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
-                        <>
+                    {
+                      pendingFormData.typeSpecificPublicationProperties &&
+                      pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
+                      <>
+                        <FormSectionRow>
                           <FormFlexContainer flex={true} contentItemFlex={1}>
                             <FileUploadInput
                               fileExtensions={['zip']}
@@ -1143,9 +1143,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               <ActionIcon label="Download live data" icon="download" />
                             </div>
                           </FormFlexContainer>
-                        </>
-                      }
-                    </FormSectionRow>
+                        </FormSectionRow>
+                        <FormSectionRow>
+                          <Checkbox
+                            name="Remove existing data"
+                            selected={pendingFormData.typeSpecificPublicationProperties.removeExistingData}
+                            onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                              inputName: 'removeExistingData',
+                              value: val,
+                            })}
+                            readOnly={formStateIsReadOnly}
+                            description={''}
+                          />
+                        </FormSectionRow>
+                      </>
+                    }
                     <FormSectionRow>
                       <h4>
                         Container cooldown times

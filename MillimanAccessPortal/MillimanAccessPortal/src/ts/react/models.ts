@@ -177,6 +177,7 @@ export interface TypeSpecificPublicationProperties {
   endTime?: string;
   timeZoneId?: string;
   dataPersistenceEnabled?: boolean;
+  removeExistingDataWithPublication?: boolean;
   shareInfo?: ContainerSharePublicationInfo[];
 }
 
