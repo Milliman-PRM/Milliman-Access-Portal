@@ -1092,10 +1092,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           <Toggle
                             label="Data Persistence"
                             checked={pendingFormData.typeSpecificPublicationProperties &&
-                              pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled}
+                              pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled}
                             onClick={() => this.props.setPublishingFormBooleanInputValue({
                               inputName: 'dataPersistenceEnabled',
-                              value: !pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
+                              value: !pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled,
                             })}
                             readOnly={formStateIsReadOnly}
                           />
@@ -1103,8 +1103,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     {
-                      pendingFormData.typeSpecificPublicationProperties &&
-                      pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
+                      pendingFormData.typeSpecificDetailObject &&
+                      pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled &&
                       <>
                         <FormSectionRow>
                           <FormFlexContainer flex={true} contentItemFlex={1}>
@@ -1147,9 +1147,11 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         <FormSectionRow>
                           <Checkbox
                             name="Remove existing data"
-                            selected={pendingFormData.typeSpecificPublicationProperties.removeExistingData}
+                            selected={
+                              pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication
+                            }
                             onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                              inputName: 'removeExistingData',
+                              inputName: 'removeExistingDataWithPublication',
                               value: val,
                             })}
                             readOnly={formStateIsReadOnly}

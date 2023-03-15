@@ -82,6 +82,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     filterPaneEnabled: false,
     navigationPaneEnabled: false,
     editableEnabled: false,
+    dataPersistenceEnabled: false,
   },
   typeSpecificPublicationProperties: {
     roleList: [],
@@ -101,7 +102,6 @@ const emptyContentItemDetail: ContentItemDetail = {
     startTime: '08:00:00',
     endTime: '17:00:00',
     timeZoneId: '',
-    dataPersistenceEnabled: false,
     shareInfo: [],
   },
 };
@@ -668,10 +668,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.timeZoneId ?
           action.response.typeSpecificPublicationProperties.timeZoneId :
           state.defaultUserTimeZoneId,
-        dataPersistenceEnabled: action.response.typeSpecificPublicationProperties &&
-          action.response.typeSpecificPublicationProperties.dataPersistenceEnabled ?
-          action.response.typeSpecificPublicationProperties.dataPersistenceEnabled :
-          emptyContentItemDetail.typeSpecificPublicationProperties.dataPersistenceEnabled,
         shareInfo: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.shareInfo ?
           action.response.typeSpecificPublicationProperties.shareInfo :
@@ -898,7 +894,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
                action.inputName === 'fridayChecked' ||
                action.inputName === 'saturdayChecked' ||
                action.inputName === 'sundayChecked' ||
-               action.inputName === 'dataPersistenceEnabled') {
+               action.inputName === 'removeExistingDataWithPublication') {
       return {
         ...state,
         pendingFormData: {

@@ -132,6 +132,7 @@ export interface ContentItemDetail {
     previewEmbedUrl?: string;
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
+    dataPersistenceEnabled?: boolean;
   };
   typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
 }
@@ -152,6 +153,8 @@ export interface ContentItemPublicationDetail {
     BookmarksPaneEnabled?: boolean;
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
+    // Containerized App specific:
+    DataPersistenceEnabled?: boolean;
   };
   typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
 }
@@ -176,7 +179,6 @@ export interface TypeSpecificPublicationProperties {
   startTime?: string;
   endTime?: string;
   timeZoneId?: string;
-  dataPersistenceEnabled?: boolean;
   removeExistingDataWithPublication?: boolean;
   shareInfo?: ContainerSharePublicationInfo[];
 }

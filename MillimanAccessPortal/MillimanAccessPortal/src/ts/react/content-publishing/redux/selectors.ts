@@ -484,6 +484,10 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
   }
 
   if (isContainerApp) {
+    contentItemInformation.TypeSpecificDetailObject = {
+      DataPersistenceEnabled: pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled,
+    };
+
     if (pendingFormData.typeSpecificPublicationProperties) {
       contentItemInformation.typeSpecificPublicationProperties = {
         containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
@@ -492,7 +496,6 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerInstanceLifetimeScheme:
           pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
         customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
-        dataPersistenceEnabled: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
       };
     }
   }
