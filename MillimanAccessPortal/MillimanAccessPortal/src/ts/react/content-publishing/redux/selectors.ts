@@ -360,7 +360,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       shareInfo: [],
     };
 
-    if (pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled) {
+    if (pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled) {
       const newShareInfo: ContainerSharePublicationInfo = {
         azureShareName: 'ContainerPersistedData-main',
         userShareName: 'main',
