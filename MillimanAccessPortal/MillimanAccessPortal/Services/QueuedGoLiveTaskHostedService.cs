@@ -488,8 +488,11 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                                 }
 
                                                 ContentRelatedFile newContentFile = publicationRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{shareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
+                                                if (newContentFile != null)
+                                                {
+                                                    await api.ExtractCompressedFileToShare(newContentFile.FullPath, shareInfo.AzureShareName, true);
+                                                }
 
-                                                api.ExtractCompressedFileToShare();
                                             }
 
                                             await dbContext.SaveChangesAsync();
