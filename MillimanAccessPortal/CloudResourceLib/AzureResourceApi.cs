@@ -260,7 +260,7 @@ namespace CloudResourceLib
             return fileShareNames;
         }
 
-        public bool FindExistingShareByName(Guid contentItemId, string name, bool isPreview, out FileShareResource existingShareResource)
+        public bool FindExistingShareByName(Guid contentItemId, string name, bool isPreview, out string existingShareResource)
         {
             FileShareCollection fileShareCollection = _fileService.GetFileShares();
 
@@ -274,7 +274,7 @@ namespace CloudResourceLib
 
             if (foundShare != null)
             {
-                existingShareResource = foundShare;
+                existingShareResource = foundShare.Data.Name;
                 return true;
             }
             else

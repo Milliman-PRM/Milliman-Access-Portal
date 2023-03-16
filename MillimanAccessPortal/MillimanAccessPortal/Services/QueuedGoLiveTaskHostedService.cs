@@ -229,6 +229,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             #region Go live
             List<Action> successActionList = new List<Action>();
+            List<Func<Task>> successAsyncFuncList = new List<Func<Task>>();
             List<Action> failureRecoveryActionList = new List<Action>();
 
             try
@@ -387,7 +388,21 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
                                     _ => null,
                                 },
-                                LiveShareDetails = containerizedAppTypeSpecificProperties.PreviewShareDetails,
+                                LiveShareDetails = containerizedAppPubProperties.ShareInfo
+                                                                                .Select(requested =>
+                                                                                {
+                                                                                    ContainerSharePublicationInfo existingLiveShare = containerizedAppTypeSpecificProperties.LiveShareDetails
+                                                                                                                                          .SingleOrDefault(live => live.UserShareName == requested.UserShareName);
+                                                                                    return new ContainerSharePublicationInfo
+                                                                                    {
+                                                                                        UserShareName = requested.UserShareName,
+                                                                                        AzureShareName = existingLiveShare is not null
+                                                                                                       ? existingLiveShare.AzureShareName
+                                                                                                       : string.Empty,  // assigned later
+                                                                                        Action = requested.Action
+                                                                                    };
+                                                                                })
+                                                                                .ToList(),
 
                                 PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                 PreviewContainerInternalPort = 0,
@@ -422,7 +437,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     Guid? previousReportId = powerBiTypeSpecificProperties.LiveReportId;
                                     if (previousReportId != null)
                                     {
-                                        successActionList.Add(async () => {
+                                        successAsyncFuncList.Add(async () => {
                                             PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
                                             PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
                                             await powerBiApi.DeleteReportAsync(previousReportId.Value);
@@ -437,9 +452,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
                                     {
                                         string repositoryName = publicationRequest.RootContentItem.AcrRepositoryName;
-                                        successActionList.Add(async () => {
+                                        ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
+                                        successAsyncFuncList.Add(async () => {
+                                            ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                                             ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
+                                            RootContentItem contentItem = await dbContext.RootContentItem.SingleAsync(c => c.Id == publicationRequest.RootContentItemId);
+                                            ContainerizedAppContentItemProperties updatedTypeSpecificProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
                                             List<ContainerGroup_GetResponseModel> allRunningContainers = await containerizedAppApi.ListContainerGroupsInResourceGroup();
                                             List<ContainerGroup_GetResponseModel> containersOfThisLiveContent = allRunningContainers.Where(g => g.Tags["contentItemId"] == publicationRequest.RootContentItemId.ToString()
@@ -449,24 +468,31 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
                                             await containerizedAppApi.RetagImage("preview", "live");
 
-                                            successActionList.Add(async () => {
-                                                AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
-                                                foreach (var shareInfo in containerizedAppTypeSpecificProperties.LiveShareDetails)
-                                                {
-                                                    ///<see cref="https://indy-github.milliman.com/PRM/Milliman-Access-Portal/issues/2028"/>
-                                                    // if (needed) TODO - what should this logic be?
-                                                    {
-                                                        // TODO Create the share (and populate data) as needed 
-                                                        string newShareName = await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.UserShareName, false, true);
-                                                        ContainerizedAppContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties; ;
-                                                        //typeSpecificProperties.LiveContainerStorageShareNames = 
-                                                    }
-                                                }
-                                            });
-
                                             Task[] allDeleteTasks = new Task[0];
                                             containersOfThisLiveContent.ForEach(c => allDeleteTasks.Append(containerizedAppApi.DeleteContainerGroup(c.Name)));
                                             await Task.WhenAll(allDeleteTasks);
+
+                                            AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
+                                            foreach (var shareInfo in updatedTypeSpecificProperties.LiveShareDetails)
+                                            {
+                                                //<see cref="https://indy-github.milliman.com/PRM/Milliman-Access-Portal/issues/2028"/>
+                                                bool shareExists = api.FindExistingShareByName(publicationRequest.RootContentItemId, shareInfo.UserShareName, false, out string azureShareName);
+                                                if (!shareExists || shareInfo.Action == ContainerShareContentsAction.DeletePrevious)
+                                                {
+                                                    azureShareName = await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.UserShareName, false, true);
+
+                                                    ContainerSharePublicationInfo liveShareInfoObject = updatedTypeSpecificProperties.LiveShareDetails
+                                                                                 .Single(s => s.UserShareName == shareInfo.UserShareName);
+
+                                                    liveShareInfoObject.AzureShareName = azureShareName;
+                                                }
+
+                                                ContentRelatedFile newContentFile = publicationRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{shareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
+
+                                                api.ExtractCompressedFileToShare();
+                                            }
+
+                                            await dbContext.SaveChangesAsync();
                                         });
                                     }
 
@@ -756,13 +782,19 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId), goLiveViewModel.UserName, goLiveViewModel.UserId);
 
             // 4 Clean up
-            // 4.1 Delete all temporarily backed up production files
+
+            #region Danger, if something throws in here the content item may be corrupted and unrecoverable
+            // 4.1 Run all synchronous actions intended for after successful database transaction is complete
             foreach (var successAction in successActionList)
             {
                 successAction.Invoke();
             }
+            // 4.2 Run all asynchronous actions intended for after successful database transaction is complete
+            Task[] runningTasks = successAsyncFuncList.Select(f => f.Invoke()).ToArray();
+            Task.WaitAll(runningTasks);
+            #endregion
 
-            // 4.2 Delete pre-live folder
+            // 4.3 Delete pre-live folder
             string PreviewFolder = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
                                                     publicationRequest.RootContentItemId.ToString(),
                                                     publicationRequest.Id.ToString());
