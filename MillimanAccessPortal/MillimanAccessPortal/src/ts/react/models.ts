@@ -245,7 +245,6 @@ export interface ContentItemFormErrors {
 
 export interface ContainerSharePublicationInfo {
   userShareName: string;
-  azureShareName: string;
   action: number; // TODO may need to change to its own model/enumeration
 }
 

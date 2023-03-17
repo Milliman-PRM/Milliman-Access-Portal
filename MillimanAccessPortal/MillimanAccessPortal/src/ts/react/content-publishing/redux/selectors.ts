@@ -331,8 +331,9 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
+      const filePurpose = isContainerApp && key === 'ContainerPersistedData' ? key + '-main' : key;
       filesToPublish.push({
-        filePurpose: key,
+        filePurpose,
         fileOriginalName: relatedFiles[key].fileOriginalName,
         fileUploadId: relatedFiles[key].fileUploadId,
       });
@@ -362,7 +363,6 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
 
     if (pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled) {
       const newShareInfo: ContainerSharePublicationInfo = {
-        azureShareName: 'ContainerPersistedData-main',
         userShareName: 'main',
         action: 0, // Hardcoded replace all for now
       };
