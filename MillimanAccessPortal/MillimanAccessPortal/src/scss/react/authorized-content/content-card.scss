@@ -21,6 +21,11 @@
         max-width: 33.3%;
     }
 
+    @include for-big-desktop-up() {
+        flex: 1 0 20%;
+        max-width: 20%;
+    }
+
     .content-card {
         position: relative;
         display: flex;

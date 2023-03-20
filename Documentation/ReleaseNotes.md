@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.18.0
+
+- Fixed content card styling on very large screens
+
 ### v1.17.8
 
 - Fixed a bug that allowed idle user sessions to remain open beyond the normal expiration time
