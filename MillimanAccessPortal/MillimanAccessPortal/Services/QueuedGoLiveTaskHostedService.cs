@@ -454,6 +454,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
                                     _ => null,
                                 },
+                                DataPersistenceEnabled = containerizedAppTypeSpecificProperties.DataPersistenceEnabled,
                                 LiveShareDetails = continuingShares.Concat(newShares).ToList(),
 
                                 PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
