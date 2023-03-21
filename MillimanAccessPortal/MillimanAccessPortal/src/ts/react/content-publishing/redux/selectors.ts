@@ -5,8 +5,9 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContainerSharePublicationInfo, ContentItemPublicationDetail,
-  ContentPublicationRequest, ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties, ContainerShareContentsAction,
+  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContainerShareContentsAction, ContainerSharePublicationInfo,
+  ContentItemPublicationDetail, ContentPublicationRequest, ContentReductionTask, Guid, RootContentItemWithStats,
+  TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
 
