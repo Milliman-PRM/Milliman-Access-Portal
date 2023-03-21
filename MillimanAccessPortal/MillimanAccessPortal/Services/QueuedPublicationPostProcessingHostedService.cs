@@ -412,8 +412,7 @@ namespace MillimanAccessPortal.Services
                         containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
 
                         #region Establish preview container storage resources as needed (should this be encapsulated in another method?)
-                        if (containerContentItemProperties.DataPersistenceEnabled && 
-                            containerContentItemProperties.LiveShareDetails.Any(d => d.Action != ContainerShareContentsAction.DeletePrevious))
+                        if (containerContentItemProperties.DataPersistenceEnabled)
                         {
                             AzureResourceApi cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
 
@@ -434,7 +433,6 @@ namespace MillimanAccessPortal.Services
                                     cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
                                 }
 
-                                // When we support multiple shares figure out how to handle uploaded zip file(s) and extract each zip to the appropriate share
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{liveShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
@@ -466,6 +464,7 @@ namespace MillimanAccessPortal.Services
                                 }
                             }
 
+                            // TODO Do we need a way to remove a share that is currently live?
                         }
                         #endregion
 
