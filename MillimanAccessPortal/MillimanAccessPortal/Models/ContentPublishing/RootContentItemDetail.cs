@@ -39,6 +39,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public bool IsEditable { get; set; }
 
+        public bool DataPersistenceEnabled { get; set; }
+
         public string ContentNotes { get; set; }
 
         public string ThumbnailLink { get; set; }
