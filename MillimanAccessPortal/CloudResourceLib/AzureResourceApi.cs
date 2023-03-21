@@ -19,6 +19,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Reflection;
+using System.Linq.Expressions;
+using System.Data.SqlTypes;
 
 namespace CloudResourceLib
 {
@@ -285,6 +287,38 @@ namespace CloudResourceLib
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="isPreview">If true only find preview shares named as preview, if false return shares not named as preview</param>
+        /// <param name="matchingSubstringList"></param>
+        /// <param name="startsWithString"></param>
+        /// <returns></returns>
+        public List<string> FindExistingShareBySubstringMatch(bool isPreview, List<string> matchingSubstringList = null, string startsWithString = null)
+        {
+
+            IEnumerable<string> query = _fileService.GetFileShares()
+                                                    .Where(s => !(s.Data.IsDeleted.HasValue && s.Data.IsDeleted.Value)) // Don't return a share that is being deleted
+                                                    .Select(fs => fs.Data.Name);
+            
+            if (!string.IsNullOrWhiteSpace(startsWithString))
+            {
+                query = query.Where(s => s.StartsWith(startsWithString));
+            }
+
+            if (matchingSubstringList != null)
+            {
+                foreach (string substring in matchingSubstringList)
+                {
+                    query = query.Where(s => s.Contains(substring));
+                }
+            }
+
+            query = query.Where(s => isPreview == s.EndsWith("-preview"));
+
+            return query.Select(s => s).ToList();
+        }
+
+        /// <summary>
         /// Creates an Azure File Share.
         /// </summary>
         /// <param name="fileShareName"></param>
@@ -304,7 +338,7 @@ namespace CloudResourceLib
                     foreach (string existingName in existingShareNames)
                     {
                         Log.Debug($"Deleting share {existingName}");  // temporary or improve
-                        await RemoveFileShareIfExists(existingName);
+                        await RemoveFileShareIfExistsAsync(existingName);
                     };
                 }
 
@@ -376,7 +410,7 @@ namespace CloudResourceLib
         /// </summary>
         /// <param name="fileShareName"></param>
         /// <returns></returns>
-        public async Task RemoveFileShareIfExists(string name)
+        public async Task RemoveFileShareIfExistsAsync(string name)
         {
             try
             {
@@ -402,12 +436,27 @@ namespace CloudResourceLib
         /// <param name="fileShareName"></param>
         /// <param name="directoryName"></param>
         /// <returns></returns>
-        public void ClearFileShare(string fileShareName, string directoryName)
+        public void ClearFileShareDirectory(string fileShareName, bool recursive, string directoryName = "/")
         {
             var storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
             ShareClient shareClient = new ShareClient(connectionString, fileShareName);
-            var rootDirectoryClient = shareClient.GetRootDirectoryClient();
+            ShareDirectoryClient startDirectoryClient = shareClient.GetDirectoryClient(directoryName);
+
+            foreach (ShareFileItem f in startDirectoryClient.GetFilesAndDirectories())
+            {
+                if (recursive && f.IsDirectory) 
+                {
+                    ClearFileShareDirectory(fileShareName, recursive, Path.Combine(directoryName, f.Name));
+                    ShareDirectoryClient subClient = startDirectoryClient.GetSubdirectoryClient(f.Name);
+                    subClient.DeleteIfExists();
+                }
+                else
+                {
+                    ShareFileClient fileClient = new ShareFileClient(new Uri(startDirectoryClient.Uri, f.Name));
+                    fileClient.DeleteIfExists();
+                }
+            }
             
             // TODO Figure out strategy.
             // Strategy #1: Remove directories recursively

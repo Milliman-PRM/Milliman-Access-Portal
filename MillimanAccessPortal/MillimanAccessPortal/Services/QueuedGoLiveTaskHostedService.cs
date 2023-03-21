@@ -40,6 +40,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using static MapDbContextLib.Models.ContainerSharePublicationInfo;
 
 public class QueuedGoLiveTaskHostedService : BackgroundService
 {
@@ -231,6 +232,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             List<Action> successActionList = new List<Action>();
             List<Func<Task>> successAsyncFuncList = new List<Func<Task>>();
             List<Action> failureRecoveryActionList = new List<Action>();
+            List<Func<Task>> failureRecoveryAsyncFuncList = new List<Func<Task>>();
 
             try
             {
@@ -375,6 +377,70 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 dbContext.SaveChanges();
                             });
 
+                            #region Manage file share infrastructure
+                            AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
+
+                            List<ContainerSharePublicationInfo> newShares = containerizedAppPubProperties.ShareInfo
+                                                                                                         .Where(p => !containerizedAppTypeSpecificProperties.LiveShareDetails
+                                                                                                                                                            .Select(l => l.UserShareName)
+                                                                                                                                                            .Contains(p.UserShareName, StringComparer.OrdinalIgnoreCase))
+                                                                                                         .ToList();
+                            foreach (ContainerSharePublicationInfo newShare in newShares)
+                            {
+                                newShare.AzureShareName = await api.CreateFileShare(publicationRequest.RootContentItemId, newShare.UserShareName, false, true);
+                                
+                                failureRecoveryAsyncFuncList.Add(async () => {
+                                    await api.RemoveFileShareIfExistsAsync(newShare.AzureShareName);
+                                });
+
+                                ContentRelatedFile zipFile = publicationRequest.LiveReadyFilesObj.SingleOrDefault(rf => rf.FilePurpose.EndsWith($"-{newShare.UserShareName}", StringComparison.OrdinalIgnoreCase));
+                                if (zipFile is not null)
+                                {
+                                    successAsyncFuncList.Add(async () =>
+                                    {
+                                        await api.ExtractCompressedFileToShare(zipFile.FullPath, newShare.AzureShareName, false);
+                                    });
+                                }
+                            }
+
+                            List<ContainerSharePublicationInfo> continuingShares = containerizedAppTypeSpecificProperties.LiveShareDetails
+                                                                                                         .Where(ls => containerizedAppPubProperties.ShareInfo
+                                                                                                                                                   .Select(ps => ps.UserShareName)
+                                                                                                                                                   .Contains(ls.UserShareName, StringComparer.OrdinalIgnoreCase))
+                                                                                                         .ToList();
+                            foreach (ContainerSharePublicationInfo liveContinuingShare in continuingShares)
+                            {
+                                successAsyncFuncList.Add(async () =>
+                                {
+                                    ContainerSharePublicationInfo requestedShareInfo = containerizedAppPubProperties.ShareInfo
+                                                                                                                    .Single(rs => rs.UserShareName.Equals(liveContinuingShare.UserShareName, StringComparison.OrdinalIgnoreCase));
+                                    if (requestedShareInfo.Action == ContainerShareContentsAction.DeletePrevious)
+                                    {
+                                        api.ClearFileShareDirectory(liveContinuingShare.AzureShareName, true);
+                                    }
+
+                                    ContentRelatedFile zipFile = publicationRequest.LiveReadyFilesObj.SingleOrDefault(rf => rf.FilePurpose.EndsWith($"-{liveContinuingShare.UserShareName}", StringComparison.OrdinalIgnoreCase));
+                                    if (zipFile is not null)
+                                    {
+                                        await api.ExtractCompressedFileToShare(zipFile.FullPath, liveContinuingShare.AzureShareName, false);
+                                    }
+                                });
+                            }
+
+                            List<ContainerSharePublicationInfo> obsoleteShares = containerizedAppTypeSpecificProperties.LiveShareDetails
+                                                                                                                       .Where(ls => !containerizedAppPubProperties.ShareInfo
+                                                                                                                                                                  .Select(ps => ps.UserShareName)
+                                                                                                                                                                  .Contains(ls.UserShareName, StringComparer.OrdinalIgnoreCase))
+                                                                                                                       .ToList();
+                            foreach (ContainerSharePublicationInfo obsoleteShare in obsoleteShares)
+                            {
+                                successAsyncFuncList.Add(async () =>
+                                {
+                                    await api.RemoveFileShareIfExistsAsync(obsoleteShare.AzureShareName);
+                                });
+                            }
+                            #endregion
+
                             publicationRequest.RootContentItem.TypeSpecificDetailObject = new ContainerizedAppContentItemProperties()
                             {
                                 LiveContainerCpuCores = containerizedAppTypeSpecificProperties.PreviewContainerCpuCores,
@@ -388,21 +454,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
                                     _ => null,
                                 },
-                                LiveShareDetails = containerizedAppPubProperties.ShareInfo
-                                                                                .Select(requested =>
-                                                                                {
-                                                                                    ContainerSharePublicationInfo existingLiveShare = containerizedAppTypeSpecificProperties.LiveShareDetails
-                                                                                                                                          .SingleOrDefault(live => live.UserShareName == requested.UserShareName);
-                                                                                    return new ContainerSharePublicationInfo
-                                                                                    {
-                                                                                        UserShareName = requested.UserShareName,
-                                                                                        AzureShareName = existingLiveShare is not null
-                                                                                                       ? existingLiveShare.AzureShareName
-                                                                                                       : string.Empty,  // assigned later
-                                                                                        Action = requested.Action
-                                                                                    };
-                                                                                })
-                                                                                .ToList(),
+                                LiveShareDetails = continuingShares.Concat(newShares).ToList(),
 
                                 PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                 PreviewContainerInternalPort = 0,
@@ -457,8 +509,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                             ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                                             ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
-                                            RootContentItem contentItem = await dbContext.RootContentItem.SingleAsync(c => c.Id == publicationRequest.RootContentItemId);
-                                            ContainerizedAppContentItemProperties updatedTypeSpecificProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
                                             List<ContainerGroup_GetResponseModel> allRunningContainers = await containerizedAppApi.ListContainerGroupsInResourceGroup();
                                             List<ContainerGroup_GetResponseModel> containersOfThisLiveContent = allRunningContainers.Where(g => g.Tags["contentItemId"] == publicationRequest.RootContentItemId.ToString()
@@ -471,29 +521,6 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                             Task[] allDeleteTasks = new Task[0];
                                             containersOfThisLiveContent.ForEach(c => allDeleteTasks.Append(containerizedAppApi.DeleteContainerGroup(c.Name)));
                                             await Task.WhenAll(allDeleteTasks);
-
-                                            AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
-                                            foreach (var shareInfo in updatedTypeSpecificProperties.LiveShareDetails)
-                                            {
-                                                //<see cref="https://indy-github.milliman.com/PRM/Milliman-Access-Portal/issues/2028"/>
-                                                bool shareExists = api.FindExistingShareByName(publicationRequest.RootContentItemId, shareInfo.UserShareName, false, out string azureShareName);
-                                                if (!shareExists || shareInfo.Action == ContainerShareContentsAction.DeletePrevious)
-                                                {
-                                                    azureShareName = await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.UserShareName, false, true);
-
-                                                    ContainerSharePublicationInfo liveShareInfoObject = updatedTypeSpecificProperties.LiveShareDetails
-                                                                                 .Single(s => s.UserShareName == shareInfo.UserShareName);
-
-                                                    liveShareInfoObject.AzureShareName = azureShareName;
-                                                }
-
-                                                ContentRelatedFile newContentFile = publicationRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{shareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
-                                                if (newContentFile != null)
-                                                {
-                                                    await api.ExtractCompressedFileToShare(newContentFile.FullPath, shareInfo.AzureShareName, true);
-                                                }
-
-                                            }
 
                                             await dbContext.SaveChangesAsync();
                                         });
@@ -775,6 +802,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 {
                     recoverAction.Invoke();
                 }
+                IEnumerable<Task> failureRecoveryTasks = failureRecoveryAsyncFuncList.Select(f => f.Invoke());
+                await Task.WhenAll(failureRecoveryTasks);
                 throw;
             }
 
@@ -793,8 +822,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 successAction.Invoke();
             }
             // 4.2 Run all asynchronous actions intended for after successful database transaction is complete
-            Task[] runningTasks = successAsyncFuncList.Select(f => f.Invoke()).ToArray();
-            Task.WaitAll(runningTasks);
+            IEnumerable<Task> successTasks = successAsyncFuncList.Select(f => f.Invoke());
+            await Task.WhenAll(successTasks);
             #endregion
 
             // 4.3 Delete pre-live folder
