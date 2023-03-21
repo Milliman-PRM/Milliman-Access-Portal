@@ -805,3 +805,8 @@ export enum ContainerInstanceLifetimeSchemeEnum {
   AlwaysCold = 1,
   Custom = 2,
 }
+
+export enum ContainerShareContentsAction {
+  DeletePrevious = 0,
+  OverwritePrevious = 1,
+}

@@ -1097,7 +1097,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               inputName: 'dataPersistenceEnabled',
                               value: !pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled,
                             })}
-                            readOnly={formStateIsReadOnly}
+                            readOnly={formStateIsReadOnly || originalFormData.id.length > 0}
                           />
                         </div>
                       </FormFlexContainer>
@@ -1146,7 +1146,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         </FormSectionRow>
                         <FormSectionRow>
                           <Checkbox
-                            name="Remove existing data"
+                            name="Remove all existing data"
                             selected={
                               pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication
                             }

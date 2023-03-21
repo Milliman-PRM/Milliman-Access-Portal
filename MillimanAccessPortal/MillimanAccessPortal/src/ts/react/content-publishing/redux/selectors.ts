@@ -6,7 +6,7 @@ import {
 } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContainerSharePublicationInfo, ContentItemPublicationDetail,
-  ContentPublicationRequest, ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
+  ContentPublicationRequest, ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties, ContainerShareContentsAction,
 } from '../../models';
 import { PublishingState } from './store';
 
@@ -364,7 +364,8 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     if (pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled) {
       const newShareInfo: ContainerSharePublicationInfo = {
         userShareName: 'main',
-        action: 0, // Hardcoded replace all for now
+        action: pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication ?
+          ContainerShareContentsAction.DeletePrevious : ContainerShareContentsAction.OverwritePrevious,
       };
       typeSpecificPublishingDetail.shareInfo.push(newShareInfo);
     }
