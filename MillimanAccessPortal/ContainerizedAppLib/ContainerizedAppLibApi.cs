@@ -763,7 +763,7 @@ namespace ContainerizedAppLib
                     requestModel.Properties.Containers.ForEach(c => c.Properties.VolumeMounts.AddRange(shareInfo.Select(s => new VolumeMount 
                     { 
                         MountPath = $"/mnt/map-{s.UserShareName}", 
-                        Name = s.AzureShareName, 
+                        Name = s.UserShareName, 
                         ReadOnly = false 
                     })));
 
