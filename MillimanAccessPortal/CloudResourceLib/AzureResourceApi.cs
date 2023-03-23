@@ -617,7 +617,7 @@ namespace CloudResourceLib
 
         private void DuplicateDirectoryContents(ShareDirectoryClient sourceDirectoryClient, ShareDirectoryClient destinationDirectoryClient)
         {
-            destinationDirectoryClient.CreateIfNotExists();
+            //destinationDirectoryClient.CreateIfNotExists();
 
             Pageable<ShareFileItem> items = sourceDirectoryClient.GetFilesAndDirectories();
 
