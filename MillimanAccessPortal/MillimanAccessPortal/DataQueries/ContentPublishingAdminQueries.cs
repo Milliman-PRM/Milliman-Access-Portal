@@ -178,23 +178,23 @@ namespace MillimanAccessPortal.DataQueries
                 IsEditable = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && (rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled),
                 DataPersistenceEnabled = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp && (rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties).DataPersistenceEnabled),
                 TypeSpecificDetailObject = default,
-                // TypeSpecificPublicationProperties = default,
+                TypeSpecificPublicationProperties = default,
             };
             switch (contentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
                     model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-                    //if (publicationRequest != null && !string.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
-                    //{
-                    //    model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<PowerBiPublicationProperties>(publicationRequest.TypeSpecificDetail);
-                    //}
+                    if (publicationRequest != null && !string.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
+                    {
+                        model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<PowerBiPublicationProperties>(publicationRequest.TypeSpecificDetail);
+                    }
                     break;
                 case ContentTypeEnum.ContainerApp:
                     model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                    //if (publicationRequest != null && !string.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
-                    //{
-                    //    model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
-                    //}
+                    if (publicationRequest != null && !string.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
+                    {
+                        model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
+                    }
                     break;
                 case ContentTypeEnum.Qlikview:
                 case ContentTypeEnum.Pdf:
