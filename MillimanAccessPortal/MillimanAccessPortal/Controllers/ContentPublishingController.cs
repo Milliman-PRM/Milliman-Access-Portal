@@ -536,7 +536,15 @@ namespace MillimanAccessPortal.Controllers
                     break;
 
                 case ContentTypeEnum.ContainerApp:
-#warning TODO: Implement the removal of image/container related resources here
+                    ContainerizedAppContentItemProperties containerizedAppProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                    IEnumerable<string> imagesToDelete = new[] { containerizedAppProps.LiveImageName, containerizedAppProps.PreviewImageName }.Where(i => i is not null).Distinct();
+
+                    foreach (string imageToDelete in imagesToDelete)
+                    {
+                        ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(imageToDelete);
+                        await api.DeleteRepository();
+                    }
+                    // Any running container instances will be quickly handled by the maintenance thread
                     break;
 
                 case ContentTypeEnum.Html:
