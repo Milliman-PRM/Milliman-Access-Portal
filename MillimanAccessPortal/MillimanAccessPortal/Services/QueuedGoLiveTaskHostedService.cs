@@ -540,7 +540,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     break;
                             }
                         }
-                        else if (Crf.FilePurpose.StartsWith("mastercontent", StringComparison.OrdinalIgnoreCase) && !publicationRequest.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
+                        else if (Crf.FilePurpose.StartsWith("ContainerPersistedData", StringComparison.OrdinalIgnoreCase) && !publicationRequest.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
                         {
                             // just don't go to the below else block
                         }
@@ -815,17 +815,32 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 // Invoke all the delegate actions in failureRecoveryActionList
                 foreach (var recoverAction in failureRecoveryActionList)
                 {
-                    recoverAction.Invoke();
+                    try
+                    {
+                        recoverAction.Invoke();
+                    }
+                    catch (Exception exc)
+                    {
+                        Log.Error(exc, "Exception while running a synchrounous task during final failure processing of go-live operation");
+                        throw;
+                    }
                 }
 
                 foreach (var failureFunc in failureRecoveryAsyncFuncList)
                 {
-                    Task funcTask = failureFunc();
-                    await funcTask;
-                    if (funcTask.IsFaulted)
+                    try
                     {
-                        Log.Error(funcTask.Exception, "Exception while running an async task during final failure processing of go-live operation");
-                        // throw funcTask.Exception;
+                        Task funcTask = failureFunc();
+                        await funcTask;
+                        if (funcTask.IsFaulted)
+                        {
+                            throw funcTask.Exception;
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        Log.Error(exc, "Exception while running an async task during final failure processing of go-live operation");
+                        throw;
                     }
                 }
                 throw;
@@ -843,18 +858,33 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             // 4.1 Run all asynchronous actions intended for after successful database transaction is complete
             foreach (var successFunc in successAsyncFuncList)
             {
-                Task funcTask = successFunc();
-                await funcTask;
-                if (funcTask.IsFaulted) 
+                try
                 {
-                    Log.Error(funcTask.Exception, "Exception while running an async task during final success processing of go-live operation");
-                    throw funcTask.Exception;
+                    Task funcTask = successFunc();
+                    await funcTask;
+                    if (funcTask.IsFaulted)
+                    {
+                        throw funcTask.Exception;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception while running an async task during final success processing of go-live operation");
+                    throw;
                 }
             }
             // 4.2 Run all synchronous actions intended for after successful database transaction is complete
             foreach (var successAction in successActionList)
             {
-                successAction.Invoke();
+                try
+                {
+                    successAction.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception while running a synchrounous task during final success processing of go-live operation");
+                    throw;
+                }
             }
             #endregion
 

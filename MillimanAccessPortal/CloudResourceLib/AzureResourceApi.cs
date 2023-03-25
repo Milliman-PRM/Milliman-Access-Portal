@@ -253,11 +253,14 @@ namespace CloudResourceLib
         /// <returns></returns>
         private List<string> GetExistingShareNamesForContent(Guid contentItemId, string name, bool isPreview)
         {
-            List<string> fileShareNames = _fileService.GetFileShares()
-                                                      .Select(s => s.Data.Name)
-                                                      .Where(n => n.StartsWith($"content-{contentItemId.ToString("N")}-{name}-") &&
-                                                                  n.EndsWith(isPreview ? "-preview" : ""))
-                                                      .ToList();
+            IEnumerable<string> query = _fileService.GetFileShares()
+                                                    .Select(s => s.Data.Name)
+                                                    .Where(n => n.StartsWith($"content-{contentItemId.ToString("N")}-{name}-"));
+            query = isPreview
+                  ? query.Where(n => n.EndsWith("-preview"))
+                  : query.Where(n => !n.EndsWith("-preview"));
+
+            List<string> fileShareNames = query.ToList();
 
             return fileShareNames;
         }
@@ -415,11 +418,18 @@ namespace CloudResourceLib
             try
             {
                 Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
-                FileShareResource fileShareResource = _fileService.GetFileShare(name);
+                try
+                {
+                    FileShareResource fileShareResource = _fileService.GetFileShare(name);
+                    string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+                    ShareClient shareClient = new ShareClient(connectionString, fileShareResource.Data.Name);
+                    bool response = await shareClient.DeleteIfExistsAsync(); // May take several minutes after initiated.
+                }
+                catch (Azure.RequestFailedException ex) when (ex.HResult == -2146233088)  // GetFileShare throws this when the share is not found
+                {
+                    return;
+                }
 
-                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
-                ShareClient shareClient = new ShareClient(connectionString, fileShareResource.Data.Name);
-                bool response = await shareClient.DeleteIfExistsAsync(); // May take several minutes after initiated.
             }
             catch (Exception ex)
             {
@@ -617,8 +627,6 @@ namespace CloudResourceLib
 
         private void DuplicateDirectoryContents(ShareDirectoryClient sourceDirectoryClient, ShareDirectoryClient destinationDirectoryClient)
         {
-            //destinationDirectoryClient.CreateIfNotExists();
-
             Pageable<ShareFileItem> items = sourceDirectoryClient.GetFilesAndDirectories();
 
             // First, copy files in this directory
@@ -638,6 +646,7 @@ namespace CloudResourceLib
             {
                 ShareDirectoryClient sourceSubDirectoryClient = sourceDirectoryClient.GetSubdirectoryClient(item.Name);
                 ShareDirectoryClient destinationSubDirectoryClient = destinationDirectoryClient.GetSubdirectoryClient(item.Name);
+                destinationSubDirectoryClient.CreateIfNotExists();
                 DuplicateDirectoryContents(sourceSubDirectoryClient, destinationSubDirectoryClient);
             }
         }

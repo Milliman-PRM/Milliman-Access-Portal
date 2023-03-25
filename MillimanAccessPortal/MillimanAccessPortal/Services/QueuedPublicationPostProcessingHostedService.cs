@@ -423,7 +423,7 @@ namespace MillimanAccessPortal.Services
                                 // *share* becomes *mounted* to the group and is available as a *volume* to each container in the group
                                 string newPreviewAzureShareName = await cloudApi.CreateFileShare(contentItem.Id, liveShareInfo.UserShareName, true, true);
                                 containerContentItemProperties.PreviewShareDetails.Add(new ContainerSharePublicationInfo 
-                                { 
+                                {
                                     UserShareName = liveShareInfo.UserShareName, 
                                     AzureShareName = newPreviewAzureShareName, 
                                     Action = liveShareInfo.Action 
