@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using CloudResourceLib;
 using ContainerizedAppLib;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
@@ -1236,6 +1237,13 @@ namespace MillimanAccessPortal.Controllers
                                     _proxyConfigProvider.RemoveExistingRoute(contentToken);
                                     await containerLibApi.DeleteContainerGroup(pubRequest.Id.ToString());
                                     await containerLibApi.DeleteTag(containerContentProps.PreviewImageTag);
+                                }
+
+                                AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+                                IEnumerable<string> azureShareNames = containerContentProps.PreviewShareDetails.Select(s => s.AzureShareName);
+                                foreach (string azureShareName in azureShareNames)
+                                {
+                                    await azureResourceApi.RemoveFileShareIfExistsAsync(azureShareName);
                                 }
 
                                 containerContentProps.PreviewImageName = null;
