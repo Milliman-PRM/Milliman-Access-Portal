@@ -74,9 +74,9 @@ namespace MapDbContextLib.Models
                 ContainerLingerTimeAfterActivity = source.CustomCooldownPeriod switch
                 {
                     ContainerCooldownPeriodEnum.ThirtyMinutes => TimeSpan.FromMinutes(30),
-                    ContainerCooldownPeriodEnum.OneHour => TimeSpan.FromMinutes(60),
+                    ContainerCooldownPeriodEnum.SixtyMinutes => TimeSpan.FromMinutes(60),
                     ContainerCooldownPeriodEnum.NinetyMinutes => TimeSpan.FromMinutes(90),
-                    ContainerCooldownPeriodEnum.TwoHours => TimeSpan.FromMinutes(120),
+                    ContainerCooldownPeriodEnum.OneHundredAndTwentyMinutes => TimeSpan.FromMinutes(120),
                     _ => throw new NotImplementedException(),
                 };
             }
