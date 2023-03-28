@@ -331,7 +331,11 @@ namespace MillimanAccessPortal.Services
                                                              null, // TODO this is where share names are provided
                                                              new Dictionary<string, string> { { "PathBase", contentToken },
                                                                                               { "MAP_URL_PATH_BASE", contentToken },
-                                                                                              { "MAP_CHECK", "1" } },
+                                                                                              { "MAP_CHECK", "1" },
+                                                                                              { "MAP_CLIENT_NAME", resourceTags.ClientName },
+                                                                                              { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
+                                                                                              { "MAP_SELECTION_GROUP_NAME", resourceTags.SelectionGroupName },
+                                                                                            },
                                                              contentItem.ClientId,
                                                              isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 

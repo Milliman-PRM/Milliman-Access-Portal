@@ -509,7 +509,11 @@ namespace MillimanAccessPortal.Services
                                                                          containerContentItemProperties.PreviewShareDetails,
                                                                          new Dictionary<string, string> { { "PathBase", contentToken },
                                                                                                           { "MAP_URL_PATH_BASE", contentToken },
-                                                                                                          { "MAP_CHECK", "1" } },
+                                                                                                          { "MAP_CHECK", "1" },
+                                                                                                          { "MAP_CLIENT_NAME", resourceTags.ClientName },
+                                                                                                          { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
+                                                                                                          { "MAP_SELECTION_GROUP_NAME", resourceTags.SelectionGroupName },
+                                                                                                        },
                                                                          contentItem.ClientId,
                                                                          containerContentItemProperties.PreviewContainerInternalPort);
 
