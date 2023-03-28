@@ -1339,6 +1339,70 @@ namespace MillimanAccessPortal.Controllers
                 FileDownloadName = $"{rootContentItem.ContentName}.pbix" };
         }
 
+        [HttpGet]
+        public async Task<IActionResult> DownloadContainerizedAppPersistentData(Guid contentItemId)
+        {
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
+            if (!authorization.Succeeded)
+            {
+                ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.GetDisplayNameString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.Id);
+                Response.Headers.Add("Warning", "You are not authorized to download this item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem rootContentItem = await _dbContext.RootContentItem
+                                                              .Include(rci => rci.ContentType)
+                                                              .Where(rci => rci.Id == contentItemId)
+                                                              .FirstOrDefaultAsync();
+
+            #region Validation
+            if (rootContentItem == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be found, aborting.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            if (rootContentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} has an invalid ContentType.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            ContainerizedAppContentItemProperties embedProperties = (rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties);
+            if (!embedProperties.DataPersistenceEnabled)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be downloaded because data persistence is not enabled.");
+                Response.Headers.Add("Warning", "Data persistence is not enabled for this Content Item.");
+                return BadRequest();
+            }
+            #endregion
+
+            PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+
+            string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
+
+            AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+            /*
+            foreach (var share in embedProperties.LiveShareDetails)
+            {
+                await azureResourceApi.DownloadCompressedShareContents(share.AzureShareName, configuredTemporaryExportsDirectory, $"{share.AzureShareName}.zip");
+            }
+            */
+            var share = embedProperties.LiveShareDetails.First();
+            await azureResourceApi.DownloadCompressedShareContents(share.AzureShareName, configuredTemporaryExportsDirectory, $"{share.AzureShareName}.zip");
+
+            return new TemporaryPhysicalFileResult($"{configuredTemporaryExportsDirectory}/{share.AzureShareName}.zip", "application/octet-stream")
+            {
+                FileDownloadName = $"{rootContentItem.ContentName}-PersistedData-{DateTime.UtcNow.ToLocalTime()}.pbix"
+            };
+        }
+
         private async Task<RootContentItem> JsonToRootContentItemAsync(JObject jObject)
         {
             RootContentItem model = default;

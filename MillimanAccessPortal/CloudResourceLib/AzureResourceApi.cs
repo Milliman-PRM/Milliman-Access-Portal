@@ -408,6 +408,38 @@ namespace CloudResourceLib
             }
         }
 
+        public async Task DownloadCompressedShareContents(string shareName, string localDownloadPath, string zipPath)
+        {
+            Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+            ShareServiceClient shareServiceClient = new ShareServiceClient(connectionString);
+            ShareClient shareClient = shareServiceClient.GetShareClient(shareName);
+
+            await DownloadDirectoryRecursiveAsync(shareClient, shareClient.GetRootDirectoryClient(), localDownloadPath);
+            ZipFile.CreateFromDirectory(localDownloadPath, zipPath);
+        }
+
+        private async Task DownloadDirectoryRecursiveAsync(ShareClient shareClient, ShareDirectoryClient shareDirectoryClient, string localDownloadPath)
+        {
+            await foreach (ShareFileItem nextFileItem in shareClient.GetRootDirectoryClient().GetFilesAndDirectoriesAsync())
+            {
+                string nextItemPath = Path.Combine(localDownloadPath, nextFileItem.Name);
+                if (nextFileItem.IsDirectory)
+                {
+                    Directory.CreateDirectory(nextItemPath);
+                    ShareDirectoryClient subDirectoryClient = shareClient.GetDirectoryClient(nextFileItem.Name);
+                    await DownloadDirectoryRecursiveAsync(shareClient, subDirectoryClient, nextItemPath);
+                }
+                else
+                {
+                    ShareFileClient fileClient = shareDirectoryClient.GetFileClient(nextFileItem.Name);
+                    Response<ShareFileDownloadInfo> downloadResponse = await fileClient.DownloadAsync();
+                    using FileStream localFileStream = File.Create(nextItemPath);
+                    await downloadResponse.Value.Content.CopyToAsync(localFileStream);
+                }
+            }
+        }
+
         /// <summary>
         /// Removes a File Share.
         /// </summary>
