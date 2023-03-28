@@ -135,6 +135,70 @@
             <p>Please reach out to the <a href="emailto:map.support@milliman.com">MAP support team</a> to learn more.</p>
             <p>Note: This is different than the above issue, in which Applications are actually <b>stopped</b> and may take time to start back up. If your application stops working due to a websocket timeout, you should be able to refresh the page and get a fresh connection relatively quickly.</p>
         </p>
+        <h3 class="subheading">Accessing the User Context and Environment Variables</h3>
+        <p>
+            <p>MAP provides certain information to Containerized Apps to allow application designers the ability to customize application behavior. The following values are injected to the running application via <b>environment variables</b>, and can be accessed within code via any library capable of accessing environment variables.</p>
+            <table>
+                <tr>
+                    <th>Variable Name</th>
+                    <th>Description</th>
+                    <th>Present if data persistence is enabled</th>
+                    <th>Present if data persistence is disabled</th>
+                    <th>Value if data persistence is enabled</th>
+                    <th>Value if data persitence is enabled</th>
+                </tr>
+                <tr>
+                    <td>MAP_URL_PATH_BASE</td>
+                    <td>The path base used in MAP for accessing the Container</td>
+                    <td>True</td>
+                    <td>True</td>
+                    <td>The path base belonging to the specific Content Item</td>
+                    <td>The path base belonging to the specific Content Item</td>
+                </tr>
+                <tr>
+                    <td>MAP_CHECK</td>
+                    <td>A boolean that allows for catch-all MAP specific coding. Users can use this value to test accessing MAP environment variables within their application.</td>
+                    <td>True</td>
+                    <td>True</td>
+                    <td>1</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>MAP_DATA_MOUNT_PATH</td>
+                    <td>Path to the (optionally) mounted file share for the Content Item.</td>
+                    <td>True</td>
+                    <td>False</td>
+                    <td><code>/mnt/map-main</code></td>
+                    <td>N/A</td>
+                </tr>
+                <tr>
+                    <td>MAP_CLIENT_NAME</td>
+                    <td>The name of the MAP Client this Content has been published under.</td>
+                    <td>True</td>
+                    <td>True</td>
+                    <td>The MAP Client name</td>
+                    <td>the MAP Clietn name</td>
+                </tr>
+                <tr>
+                    <td>MAP_CONTENT_ITEM_NAME</td>
+                    <td>The name of the MAP Content Item.</td>
+                    <td>True</td>
+                    <td>True</td>
+                    <td>The MAP Content Item name</td>
+                    <td>The MAP Content Item name</td>
+                </tr>
+                <tr>
+                    <td>MAP_SELECTION_GROUP_NAME</td>
+                    <td>The name of the MAP Selection Group name for this Content (This value will not be injected for non-live Content Items).</td>
+                    <td>True</td>
+                    <td>True</td>
+                    <td>The MAP Selection Group name</td>
+                    <td>The MAP Selection Group name</td>
+                </tr>
+            </table>
+            <p><b>Accessing the User Context</b></p>
+            <p>The current user context can be accessed via any requests being received by the Containerized App via a specialized <i>request header.</i> All requests received by the Containerized App from MAP will contain a request header with the name of <code>map-user-id</code> and a value of the current User's username, which comes in the form of the User's email address, lowercased. Application designers can use this value to customize further behavior based on which User is making requests.</p>
+        </p>
     </div>
     <div class="accordion">
         <p>Updating Existing Content</p>
