@@ -120,17 +120,12 @@ namespace MillimanAccessPortal
                         Configuration.GetValue<string>("AciClientSecret"));
 
                     AzureClientCredential containerRegistryCredential = AzureClientCredential.NewInstance(
-                    //    CredentialScope.ContainerRegistry | CredentialScope.Storage,  // to testing error handling
                         CredentialScope.ContainerRegistry,
                         Configuration.GetValue<string>("ContainerRegistryTenantId"),
                         Configuration.GetValue<string>("ContainerRegistryClientId"),
                         Configuration.GetValue<string>("ContainerRegistryClientSecret"));
 
                     AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential }, "EastUs");
-
-                    var api = new AzureResourceApi(new Guid(2,0,0,0,0,0,0,0,0,0,0), scope: CredentialScope.Storage);
-                    //await api.CreateFileShare(contentItemId: new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),  "tom1", true, true);
-                    //await api.CreateFileShare(contentItemId: new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),  "tom1", true, true);
                     #endregion
                     #endregion
 

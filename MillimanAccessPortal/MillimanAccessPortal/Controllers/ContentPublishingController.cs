@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using CloudResourceLib;
 using ContainerizedAppLib;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
@@ -536,7 +537,15 @@ namespace MillimanAccessPortal.Controllers
                     break;
 
                 case ContentTypeEnum.ContainerApp:
-#warning TODO: Implement the removal of image/container related resources here
+                    ContainerizedAppContentItemProperties containerizedAppProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                    IEnumerable<string> imagesToDelete = new[] { containerizedAppProps.LiveImageName, containerizedAppProps.PreviewImageName }.Where(i => i is not null).Distinct();
+
+                    foreach (string imageToDelete in imagesToDelete)
+                    {
+                        ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(imageToDelete);
+                        await api.DeleteRepository();
+                    }
+                    // Any running container instances will be quickly handled by the maintenance thread
                     break;
 
                 case ContentTypeEnum.Html:
@@ -1228,6 +1237,13 @@ namespace MillimanAccessPortal.Controllers
                                     _proxyConfigProvider.RemoveExistingRoute(contentToken);
                                     await containerLibApi.DeleteContainerGroup(pubRequest.Id.ToString());
                                     await containerLibApi.DeleteTag(containerContentProps.PreviewImageTag);
+                                }
+
+                                AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+                                IEnumerable<string> azureShareNames = containerContentProps.PreviewShareDetails.Select(s => s.AzureShareName);
+                                foreach (string azureShareName in azureShareNames)
+                                {
+                                    await azureResourceApi.RemoveFileShareIfExistsAsync(azureShareName);
                                 }
 
                                 containerContentProps.PreviewImageName = null;

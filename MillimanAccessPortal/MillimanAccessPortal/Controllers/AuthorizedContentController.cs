@@ -897,8 +897,11 @@ namespace MillimanAccessPortal.Controllers
                                                                      vnetId,
                                                                      vnetName,
                                                                      false,
-                                                                     null, // TODO this is where share names are provided
-                                                                     new Dictionary<string, string> { { "PathBase", contentToken },
+                                                                     typeSpecificInfo.DataPersistenceEnabled 
+                                                                        ? (isLiveContent ? typeSpecificInfo.LiveShareDetails : typeSpecificInfo.PreviewShareDetails)
+                                                                        : null,
+                                                                     new Dictionary<string, string> {
+                                                                                                      { "PathBase", contentToken },
                                                                                                       { "MAP_URL_PATH_BASE", contentToken },
                                                                                                       { "MAP_CHECK", "1" },
                                                                                                       { "MAP_CLIENT_NAME", resourceTags.ClientName },
