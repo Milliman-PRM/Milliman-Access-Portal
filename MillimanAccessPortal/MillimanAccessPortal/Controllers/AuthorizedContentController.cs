@@ -897,7 +897,7 @@ namespace MillimanAccessPortal.Controllers
                                                                      vnetId,
                                                                      vnetName,
                                                                      false,
-                                                                     typeSpecificInfo.DataPersistenceEnabled 
+                                                                     typeSpecificInfo.DataPersistenceEnabled
                                                                         ? (isLiveContent ? typeSpecificInfo.LiveShareDetails : typeSpecificInfo.PreviewShareDetails)
                                                                         : null,
                                                                      new Dictionary<string, string> {
@@ -906,8 +906,10 @@ namespace MillimanAccessPortal.Controllers
                                                                                                       { "MAP_CHECK", "1" },
                                                                                                       { "MAP_CLIENT_NAME", resourceTags.ClientName },
                                                                                                       { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
-                                                                                                      { "MAP_SELECTION_GROUP_NAME", resourceTags.SelectionGroupName },
-                                                                                                    },
+                                                                                                    }.Concat(isLiveContent
+                                                                                                        ? new Dictionary<string, string> { { "MAP_SELECTION_GROUP_NAME", resourceTags.SelectionGroupName } }
+                                                                                                        : new Dictionary<string, string>())
+                                                                                                    .ToDictionary(x => x.Key, x => x.Value),
                                                                      contentItem.ClientId,
                                                                      isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
                     }
