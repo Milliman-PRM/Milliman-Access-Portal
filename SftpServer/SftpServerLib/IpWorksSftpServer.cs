@@ -92,6 +92,10 @@ namespace SftpServerLib
             // arcfour algorithms were identified as weak during penetration tests
             string[] defaultEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms.Split(',');
             IEnumerable<string> algorithmsToRemove = defaultEncryptionAlgorithms.Where(a => a.Contains("arcfour", StringComparison.InvariantCultureIgnoreCase));
+
+            // The following is the fix for issue documented at https://github.com/Milliman-PRM/Milliman-Access-Portal/security/advisories/GHSA-g3w8-p6p6-g2mm
+            // algorithmsToRemove = algorithmsToRemove.Concat(new[] { "3des-cbc", "aes128-cbc", "aes192-cbc", "aes256-cbc", "blowfish-cbc", "cast128-cbc" });
+
             _sftpServer.SSHEncryptionAlgorithms = string.Join(',', defaultEncryptionAlgorithms.Except(algorithmsToRemove));
 
             Log.Debug("SFTP Server instance constructed");

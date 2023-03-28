@@ -97,6 +97,7 @@ namespace MapDbContextLib.Models
         {
             bool returnValue = false;
 
+            returnValue |= DataPersistenceEnabled;
             returnValue |= LiveContainerCpuCores != requestProps.ContainerCpuCores;
             returnValue |= LiveContainerRamGb != requestProps.ContainerRamGb;
             returnValue |= LiveContainerInternalPort != requestProps.ContainerInternalPort;

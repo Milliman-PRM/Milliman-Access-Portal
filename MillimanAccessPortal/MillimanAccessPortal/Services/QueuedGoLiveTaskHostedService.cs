@@ -439,14 +439,24 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     await api.RemoveFileShareIfExistsAsync(obsoleteShare.AzureShareName);
                                 });
                             }
+
+                            successAsyncFuncList.Add(async () =>
+                            {
+                                foreach (var previewShare in containerizedAppTypeSpecificProperties.PreviewShareDetails)
+                                {
+                                    await api.RemoveFileShareIfExistsAsync(previewShare.AzureShareName);
+                                }
+                            });
                             #endregion
+
+                            bool publishingNewImage = publicationRequest.LiveReadyFilesObj.Any(f => f.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase));
 
                             publicationRequest.RootContentItem.TypeSpecificDetailObject = new ContainerizedAppContentItemProperties()
                             {
                                 LiveContainerCpuCores = containerizedAppTypeSpecificProperties.PreviewContainerCpuCores,
                                 LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
                                 LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
-                                LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
+                                LiveImageName = publishingNewImage ? containerizedAppTypeSpecificProperties.PreviewImageName : containerizedAppTypeSpecificProperties.LiveImageName,
                                 LiveImageTag = "live",
                                 LiveContainerLifetimeScheme = containerizedAppPubProperties.ContainerInstanceLifetimeScheme switch
                                 {
@@ -454,6 +464,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
                                     _ => null,
                                 },
+                                DataPersistenceEnabled = containerizedAppTypeSpecificProperties.DataPersistenceEnabled,
                                 LiveShareDetails = continuingShares.Concat(newShares).ToList(),
 
                                 PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
@@ -529,9 +540,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     break;
                             }
                         }
-                        else
+                        else if (Crf.FilePurpose.StartsWith("ContainerPersistedData", StringComparison.OrdinalIgnoreCase) && !publicationRequest.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
                         {
-                            // This assignment defines the live file name
+                            // just don't go to the below else block
+                        }
+                        else
+                            {
+                            // This assignment defines the live file path/name
                             TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
                                                           goLiveViewModel.RootContentItemId.ToString(),
                                                           TargetFileName);
@@ -558,10 +573,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 }));
                             }
 
-                            // Can move since files are on the same volume
-                            File.Move(Crf.FullPath, TargetFilePath);
+                            // Move new file to live location
+                            File.Move(Crf.FullPath, TargetFilePath);  // Can move rather than copy/delete since files are on the same volume
 
-                            failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
+                            failureRecoveryActionList.Insert(0, new Action(() => {  // .Insert because this one must run before restoring the previous file from backup path
                                 if (File.Exists(Crf.FullPath))
                                 {
                                     File.Delete(Crf.FullPath);
@@ -800,10 +815,34 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 // Invoke all the delegate actions in failureRecoveryActionList
                 foreach (var recoverAction in failureRecoveryActionList)
                 {
-                    recoverAction.Invoke();
+                    try
+                    {
+                        recoverAction.Invoke();
+                    }
+                    catch (Exception exc)
+                    {
+                        Log.Error(exc, "Exception while running a synchrounous task during final failure processing of go-live operation");
+                        throw;
+                    }
                 }
-                IEnumerable<Task> failureRecoveryTasks = failureRecoveryAsyncFuncList.Select(f => f.Invoke());
-                await Task.WhenAll(failureRecoveryTasks);
+
+                foreach (var failureFunc in failureRecoveryAsyncFuncList)
+                {
+                    try
+                    {
+                        Task funcTask = failureFunc();
+                        await funcTask;
+                        if (funcTask.IsFaulted)
+                        {
+                            throw funcTask.Exception;
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        Log.Error(exc, "Exception while running an async task during final failure processing of go-live operation");
+                        throw;
+                    }
+                }
                 throw;
             }
 
@@ -816,14 +855,37 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
             // 4 Clean up
 
             #region Danger, if something throws in here the content item may be corrupted and unrecoverable
-            // 4.1 Run all synchronous actions intended for after successful database transaction is complete
+            // 4.1 Run all asynchronous actions intended for after successful database transaction is complete
+            foreach (var successFunc in successAsyncFuncList)
+            {
+                try
+                {
+                    Task funcTask = successFunc();
+                    await funcTask;
+                    if (funcTask.IsFaulted)
+                    {
+                        throw funcTask.Exception;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception while running an async task during final success processing of go-live operation");
+                    throw;
+                }
+            }
+            // 4.2 Run all synchronous actions intended for after successful database transaction is complete
             foreach (var successAction in successActionList)
             {
-                successAction.Invoke();
+                try
+                {
+                    successAction.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception while running a synchrounous task during final success processing of go-live operation");
+                    throw;
+                }
             }
-            // 4.2 Run all asynchronous actions intended for after successful database transaction is complete
-            IEnumerable<Task> successTasks = successAsyncFuncList.Select(f => f.Invoke());
-            await Task.WhenAll(successTasks);
             #endregion
 
             // 4.3 Delete pre-live folder
@@ -839,8 +901,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
         }
     }
 
-    private async Task FailGoLiveAsync(
-        ApplicationDbContext dbContext, ContentPublicationRequest publicationRequest, string reason)
+    private async Task FailGoLiveAsync(ApplicationDbContext dbContext, ContentPublicationRequest publicationRequest, string reason)
     {
         publicationRequest.RequestStatus = PublicationStatus.Error;
         publicationRequest.StatusMessage = reason;
