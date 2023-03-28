@@ -1383,10 +1383,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-
             string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
-
             AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
             /*
             foreach (var share in embedProperties.LiveShareDetails)
@@ -1395,11 +1392,12 @@ namespace MillimanAccessPortal.Controllers
             }
             */
             var share = embedProperties.LiveShareDetails.First();
-            await azureResourceApi.DownloadCompressedShareContents(share.AzureShareName, configuredTemporaryExportsDirectory, $"{share.AzureShareName}.zip");
+            string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, share.AzureShareName);
+            await azureResourceApi.DownloadCompressedShareContents(share.AzureShareName, temporaryDownloadPath, Path.Combine(configuredTemporaryExportsDirectory, $"{share.AzureShareName}.zip"));
 
             return new TemporaryPhysicalFileResult($"{configuredTemporaryExportsDirectory}/{share.AzureShareName}.zip", "application/octet-stream")
             {
-                FileDownloadName = $"{rootContentItem.ContentName}-PersistedData-{DateTime.UtcNow.ToLocalTime()}.pbix"
+                FileDownloadName = $"{rootContentItem.ContentName}-PersistedData-{DateTime.UtcNow.ToLocalTime()}.zip"
             };
         }
 

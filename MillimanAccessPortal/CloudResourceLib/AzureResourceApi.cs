@@ -414,14 +414,16 @@ namespace CloudResourceLib
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
             ShareServiceClient shareServiceClient = new ShareServiceClient(connectionString);
             ShareClient shareClient = shareServiceClient.GetShareClient(shareName);
+            Directory.CreateDirectory(localDownloadPath);
 
+            var rootDirectoryShareClient = shareClient.GetRootDirectoryClient();
             await DownloadDirectoryRecursiveAsync(shareClient, shareClient.GetRootDirectoryClient(), localDownloadPath);
             ZipFile.CreateFromDirectory(localDownloadPath, zipPath);
         }
 
         private async Task DownloadDirectoryRecursiveAsync(ShareClient shareClient, ShareDirectoryClient shareDirectoryClient, string localDownloadPath)
         {
-            await foreach (ShareFileItem nextFileItem in shareClient.GetRootDirectoryClient().GetFilesAndDirectoriesAsync())
+            await foreach (ShareFileItem nextFileItem in shareDirectoryClient.GetFilesAndDirectoriesAsync())
             {
                 string nextItemPath = Path.Combine(localDownloadPath, nextFileItem.Name);
                 if (nextFileItem.IsDirectory)

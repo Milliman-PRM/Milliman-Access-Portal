@@ -1140,7 +1140,15 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           </FormFlexContainer>
                           <FormFlexContainer flex={false}>
                             <div style={{paddingTop: '1rem'}}>
-                              <ActionIcon label="Download live data" icon="download" />
+                              <a
+                                href={
+                                  `./ContentPublishing/DownloadContainerizedAppPersistentData?contentItemId=
+                                  ${pendingFormData.id}`
+                                }
+                                download={true}
+                              >
+                                <ActionIcon label="Download live data" icon="download" />
+                              </a>
                             </div>
                           </FormFlexContainer>
                         </FormSectionRow>
