@@ -400,9 +400,11 @@ namespace MillimanAccessPortal.Controllers
                                      $"Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}" +
                                      $"User: {HttpContext.User.Identity.Name}{Environment.NewLine}{Environment.NewLine}" +
                                      $"Check for more details in the MAP application log file";
-                    var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
-                    notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
+#warning  https://indy-github.milliman.com/PRM/Milliman-Access-Portal/issues/1261
+                    //var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+                    // notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
+
                     Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: checksum failure for ContentFile {{@ContentFile}}, aborting", requestedContentFile);
                     AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(
                                         selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, ControllerContext.ActionDescriptor.DisplayName), 
