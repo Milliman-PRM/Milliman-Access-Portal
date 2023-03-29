@@ -777,9 +777,9 @@ export enum ContainerCpuCoresEnum {
 export enum ContainerCooldownEnum {
   Unspecified = 0,
   ThirtyMinutes = 1,
-  OneHour = 2,
+  SixtyMinutes = 2,
   NinetyMinutes = 3,
-  TwoHours = 4,
+  OneHundredAndTwentyMinutes = 4,
 }
 
 export enum ContainerRamGbEnum {

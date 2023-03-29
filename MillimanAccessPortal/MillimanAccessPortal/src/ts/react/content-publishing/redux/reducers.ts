@@ -98,7 +98,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     fridayChecked: false,
     saturdayChecked: false,
     sundayChecked: false,
-    customCooldownPeriod: ContainerCooldownEnum.OneHour,
+    customCooldownPeriod: ContainerCooldownEnum.SixtyMinutes,
     startTime: '08:00:00',
     endTime: '17:00:00',
     timeZoneId: '',

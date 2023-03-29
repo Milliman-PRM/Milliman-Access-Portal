@@ -1,10 +1,7 @@
 ﻿using MapCommonLib;
-using Microsoft.AspNetCore.Http;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
@@ -22,6 +19,7 @@ namespace MillimanAccessPortal.ContentProxy
 
         public override ValueTask ApplyAsync(RequestTransformContext context)
         {
+            context.ProxyRequest.Headers.Add("map-username", context.HttpContext.User.Identity.Name);
             GlobalFunctions.ContainerLastActivity.AddOrUpdate(_cluster.Metadata["ContentToken"], DateTime.UtcNow, (_, _) => DateTime.UtcNow);
 
             Log.Verbose($"Proxy forwarding request {context.HttpContext.Request.Scheme}://{context.HttpContext.Request.Host}{context.HttpContext.Request.Path} " +
