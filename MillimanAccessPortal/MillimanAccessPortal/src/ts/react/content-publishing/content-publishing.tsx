@@ -1981,7 +1981,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <GoLiveSection
           title="Container Persisted Data"
           checkboxLabel="Changes made to the existing persisted dataset are as expected"
-          checkboxTarget="containerPersistedDatachanges"
+          checkboxTarget="containerPersistedDataChanges"
           checkboxSelectedValue={elementsToConfirm.containerPersistedDatachanges}
           checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
         >

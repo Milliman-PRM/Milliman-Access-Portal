@@ -362,7 +362,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       shareInfo: [],
     };
 
-    if (pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled) {
+    if (pendingFormData.typeSpecificDetailObject && pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled) {
       const newShareInfo: ContainerSharePublicationInfo = {
         userShareName: 'main',
         action: pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication ?
