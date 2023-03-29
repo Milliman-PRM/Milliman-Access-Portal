@@ -508,11 +508,13 @@ namespace MillimanAccessPortal.Services
                                                                          vnetName,
                                                                          true,
                                                                          containerContentItemProperties.PreviewShareDetails,
-                                                                         new Dictionary<string, string> { { "PathBase", contentToken },
+                                                                         new Dictionary<string, string> {
+                                                                                                          { "PathBase", contentToken },
                                                                                                           { "MAP_URL_PATH_BASE", contentToken },
                                                                                                           { "MAP_CHECK", "1" },
                                                                                                           { "MAP_CLIENT_NAME", resourceTags.ClientName },
                                                                                                           { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
+                                                                                                          { "MAP_SELECTION_GROUP_NAME", "PREVIEW_CONTAINER" },
                                                                                                         },
                                                                          contentItem.ClientId,
                                                                          containerContentItemProperties.PreviewContainerInternalPort);

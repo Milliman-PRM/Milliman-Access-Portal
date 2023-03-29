@@ -331,15 +331,14 @@ namespace MillimanAccessPortal.Services
                                                              typeSpecificInfo.DataPersistenceEnabled 
                                                                  ? (isLiveContent ? typeSpecificInfo.LiveShareDetails : typeSpecificInfo.PreviewShareDetails)
                                                                  : null,
-                                                             new Dictionary<string, string> { { "PathBase", contentToken },
+                                                             new Dictionary<string, string> {
+                                                                                              { "PathBase", contentToken },
                                                                                               { "MAP_URL_PATH_BASE", contentToken },
                                                                                               { "MAP_CHECK", "1" },
                                                                                               { "MAP_CLIENT_NAME", resourceTags.ClientName },
                                                                                               { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
-                                                                                            }.Concat(isLiveContent
-                                                                                                ? new Dictionary<string, string> { { "MAP_SELECTION_GROUP_NAME", resourceTags.SelectionGroupName } }
-                                                                                                : new Dictionary<string, string>())
-                                                                                            .ToDictionary(x => x.Key, x => x.Value),
+                                                                                              { "MAP_SELECTION_GROUP_NAME", isLiveContent ? resourceTags.SelectionGroupName : "PREVIEW_CONTAINER" },
+                                                                                            },
                                                              contentItem.ClientId,
                                                              isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
