@@ -1138,34 +1138,43 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               readOnly={formStateIsReadOnly}
                             />
                           </FormFlexContainer>
-                          <FormFlexContainer flex={false}>
-                            <div style={{paddingTop: '1rem'}}>
-                              <a
-                                href={
-                                  `./ContentPublishing/DownloadContainerizedAppPersistentData?contentItemId=
-                                  ${pendingFormData.id}`
-                                }
-                                download={true}
-                              >
-                                <ActionIcon label="Download live data" icon="download" />
-                              </a>
-                            </div>
-                          </FormFlexContainer>
+                          {pendingFormData.typeSpecificDetailObject.liveShareDetails &&
+                           pendingFormData.typeSpecificDetailObject.liveShareDetails.length > 0 &&
+                           pendingFormData.typeSpecificDetailObject.liveShareDetails.map((share, key) => (
+                             <FormFlexContainer flex={false} key={key}>
+                               <div style={{paddingTop: '1rem'}}>
+                                 <a
+                                   href={
+                                     `./ContentPublishing/DownloadContainerizedAppPersistentData?contentItemId=
+                                     ${pendingFormData.id}&azureShareName=
+                                     ${share.azureShareName}`
+                                   }
+                                   download={true}
+                                 >
+                                   <ActionIcon label="Download live data" icon="download" />
+                                 </a>
+                               </div>
+                             </FormFlexContainer>
+                           ))
+                          }
                         </FormSectionRow>
-                        <FormSectionRow>
-                          <Checkbox
-                            name="Remove all existing data"
-                            selected={
-                              pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication
-                            }
-                            onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                              inputName: 'removeExistingDataWithPublication',
-                              value: val,
-                            })}
-                            readOnly={formStateIsReadOnly}
-                            description={''}
-                          />
-                        </FormSectionRow>
+                        {pendingFormData.typeSpecificDetailObject.liveShareDetails &&
+                         pendingFormData.typeSpecificDetailObject.liveShareDetails.length > 0 &&
+                          <FormSectionRow>
+                            <Checkbox
+                              name="Remove all existing data"
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'removeExistingDataWithPublication',
+                                value: val,
+                              })}
+                              readOnly={formStateIsReadOnly}
+                              description={''}
+                            />
+                          </FormSectionRow>
+                        }
                       </>
                     }
                     <FormSectionRow>

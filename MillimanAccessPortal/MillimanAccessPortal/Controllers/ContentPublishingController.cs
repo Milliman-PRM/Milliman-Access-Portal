@@ -1385,7 +1385,6 @@ namespace MillimanAccessPortal.Controllers
 
             string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
             AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
-            var share = typeSpecificContentItemProperties.LiveShareDetails.First();
 
             string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, azureShareName);
             string temporaryZipLocation = Path.Combine(configuredTemporaryExportsDirectory, $"{azureShareName}.zip");
