@@ -644,9 +644,12 @@ namespace CloudResourceLib
                 FileInfo fileInfo = new FileInfo(fileName);
                 targetFileClient.Create(fileInfo.Length);
 
-                using (FileStream sourceFileStream = File.OpenRead(fileName))
+                if (fileInfo.Length > 0)
                 {
-                    targetFileClient.Upload(sourceFileStream);
+                    using (FileStream sourceFileStream = File.OpenRead(fileName))
+                    {
+                        targetFileClient.Upload(sourceFileStream);
+                    }
                 }
 
                 return true;

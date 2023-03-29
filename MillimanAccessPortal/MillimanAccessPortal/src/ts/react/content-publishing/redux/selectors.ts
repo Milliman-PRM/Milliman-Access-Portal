@@ -487,7 +487,8 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
 
   if (isContainerApp) {
     contentItemInformation.TypeSpecificDetailObject = {
-      DataPersistenceEnabled: pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled,
+      DataPersistenceEnabled: pendingFormData.typeSpecificDetailObject
+        && pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled,
     };
 
     if (pendingFormData.typeSpecificPublicationProperties) {
