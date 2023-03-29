@@ -431,13 +431,21 @@ namespace MillimanAccessPortal.Services
 
                                 if (liveShareInfo.Action != ContainerShareContentsAction.DeletePrevious)
                                 {
-                                    cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
+                                    await cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
                                 }
 
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{liveShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
+                                    var replacedFiles = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
+
+                                    if (containerizedAppPubProperties.ReplacedShareFiles is null)
+                                    {
+                                        containerizedAppPubProperties.ReplacedShareFiles = new Dictionary<string, List<string>> { };
+                                    }
+                                    containerizedAppPubProperties.ReplacedShareFiles.Add(liveShareInfo.UserShareName, replacedFiles);
+                                    thisPubRequest.TypeSpecificDetail = JsonSerializer.Serialize(containerizedAppPubProperties);
+                                    await dbContext.SaveChangesAsync();
                                 }
                             }
 

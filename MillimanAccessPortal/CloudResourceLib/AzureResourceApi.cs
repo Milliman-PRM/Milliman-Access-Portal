@@ -2,9 +2,6 @@
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
-using Azure.ResourceManager.ContainerInstance.Models;
-using Azure.ResourceManager.ContainerInstance;
-using Azure.ResourceManager.ContainerRegistry.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
@@ -18,9 +15,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Reflection;
-using System.Linq.Expressions;
-using System.Data.SqlTypes;
+using System.Threading;
 
 namespace CloudResourceLib
 {
@@ -371,8 +366,18 @@ namespace CloudResourceLib
             }
         }
 
-        public async Task ExtractCompressedFileToShare(string fileFullPath, string shareName, bool overwriteExistingFiles)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileFullPath"></param>
+        /// <param name="shareName"></param>
+        /// <param name="overwriteExistingFiles"></param>
+        /// <returns>List of full paths of files that were overwritten during extraction</returns>
+        /// <exception cref="FileNotFoundException"></exception>
+        public async Task<List<string>> ExtractCompressedFileToShare(string fileFullPath, string shareName, bool overwriteExistingFiles)
         {
+            List<string> overwrittenFiles = new List<string>();
+
             if (!File.Exists(fileFullPath))
             {
                 throw new FileNotFoundException("Unable to extract archive, not found", fileFullPath);
@@ -392,7 +397,11 @@ namespace CloudResourceLib
                             try
                             {
                                 entry.ExtractToFile(tempFileName);
-                                await UploadFileToShare(tempFileName, shareName, entry.FullName, overwriteExistingFiles);
+                                bool fileOverwritten = await UploadFileToShare(tempFileName, shareName, entry.FullName, overwriteExistingFiles);
+                                if (fileOverwritten)
+                                {
+                                    overwrittenFiles.Add(entry.FullName);
+                                }
                             }
                             finally
                             {
@@ -404,8 +413,10 @@ namespace CloudResourceLib
             }
             else
             {
-                // TODO uh oh
+                throw new ApplicationException($"Unable to extract file named {fileFullPath}, expected *.zip");
             }
+
+            return overwrittenFiles;
         }
 
         /// <summary>
@@ -534,8 +545,18 @@ namespace CloudResourceLib
             }
         }
 
+        /// <summary>
+        /// Upload a locally accessible file to a specified location in an Azure file share
+        /// </summary>
+        /// <param name="fileName">The file name in the source folder, interpreted as relative to the current directory of this process</param>
+        /// <param name="fileShareName">The Azure file share name</param>
+        /// <param name="destinationFileFullPath">Can be a rooted path or will be interpreted as relative to the share root folder</param>
+        /// <param name="overwriteExistingFiles">if true, replace any existing file of the same name in the destination folder</param>
+        /// <returns>true if an existing file was overwritten, false otherwise</returns>
         public async Task<bool> UploadFileToShare(string fileName, string fileShareName, string destinationFileFullPath, bool overwriteExistingFiles)
         {
+            bool returnVal = false;
+
             try
             {
                 Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
@@ -556,9 +577,16 @@ namespace CloudResourceLib
                 }
 
                 ShareFileClient targetFileClient = directoryClient.GetFileClient(destinationFileName);
-                if (targetFileClient.Exists() && !overwriteExistingFiles)
+                if (targetFileClient.Exists())
                 {
-                    return false;
+                    if (!overwriteExistingFiles)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        returnVal = true;
+                    }
                 }
 
                 FileInfo fileInfo = new FileInfo(fileName);
@@ -569,8 +597,9 @@ namespace CloudResourceLib
                     targetFileClient.Upload(sourceFileStream);
                 }
 
-                return true;
+                return returnVal;
             }
+
             catch (Exception ex)
             {
                 Log.Error(ex, "Error uploading file to Azure File Share from provided stream.");  // temporary or improve
@@ -611,7 +640,7 @@ namespace CloudResourceLib
             targetFileClient.Upload(source);
         }
 
-        public void DuplicateShareContents(string sourceShareName, string destinationShareName)
+        public async Task DuplicateShareContents(string sourceShareName, string destinationShareName)
         {
             Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
@@ -622,24 +651,70 @@ namespace CloudResourceLib
             FileShareResource destinationFileShareResource = _fileService.GetFileShare(destinationShareName);
             ShareClient destinationShareClient = new ShareClient(connectionString, destinationFileShareResource.Data.Name);
 
-            DuplicateDirectoryContents(sourceShareClient.GetRootDirectoryClient(), destinationShareClient.GetRootDirectoryClient());
+            await DuplicateDirectoryContents(sourceShareClient.GetRootDirectoryClient(), destinationShareClient.GetRootDirectoryClient());
         }
 
-        private void DuplicateDirectoryContents(ShareDirectoryClient sourceDirectoryClient, ShareDirectoryClient destinationDirectoryClient)
+        static SemaphoreSlim copyPollingSemaphore = new SemaphoreSlim(10);
+        private async Task DuplicateDirectoryContents(ShareDirectoryClient sourceDirectoryClient, ShareDirectoryClient destinationDirectoryClient)
         {
             Pageable<ShareFileItem> items = sourceDirectoryClient.GetFilesAndDirectories();
 
+            Func<ShareFileClient,Task> WaitForCopyComplete = async destinationFileClient =>
+            {
+                TimeSpan interval = TimeSpan.FromSeconds(2);
+                for (ShareFileProperties props = await destinationFileClient.GetPropertiesAsync();  props.CopyStatus == CopyStatus.Pending;  interval = interval.TotalSeconds >= 10 
+                                                                                                                                                  ? interval 
+                                                                                                                                                  : interval + TimeSpan.FromSeconds(1))
+                {
+                    await Task.Delay(interval);
+
+                    copyPollingSemaphore.Wait();
+                    try
+                    {
+                        props = destinationFileClient.GetProperties();
+                    }
+                    finally 
+                    { 
+                        copyPollingSemaphore.Release(); 
+                    }
+                }
+            };
+
+            List<Task> copyTasks = new List<Task>();
             // First, copy files in this directory
             foreach (ShareFileItem item in items.Where(i => !i.IsDirectory))
             {
                 ShareFileClient sourceFileClient = sourceDirectoryClient.GetFileClient(item.Name);
+                ShareFileClient destinationFileClient = destinationDirectoryClient.GetFileClient(item.Name);
+
+#if true // TODO hopefully this avoids streaming the file contents to and from MAP
+                ShareFileCopyInfo info = await destinationFileClient.StartCopyAsync(sourceFileClient.Uri);
+                switch (info.CopyStatus)
+                {
+                    case CopyStatus.Pending:
+                        copyTasks.Add(WaitForCopyComplete(destinationFileClient));
+                        Log.Information($"Starting a pending async file copy operation for destination file {item.Name}");
+                        break;
+                    case CopyStatus.Aborted:
+                    case CopyStatus.Failed:
+                        Log.Warning($"Status of Azure file copy operation is {info.CopyStatus} for destination file {item.Name}");
+                        // TODO do something more
+                        break;
+                    case CopyStatus.Success:
+                        Log.Information($"File copy request for destination file {item.Name} resulted in success status");
+                        break;
+                }
+#else //  TODO this technique streams the contents of every file to and from MAP
                 using (Stream sourceStream = sourceFileClient.OpenRead())
                 {
-                    ShareFileClient destinationFileClient = destinationDirectoryClient.GetFileClient(item.Name);
                     destinationFileClient.Create(item.FileSize.Value);
                     destinationFileClient.Upload(sourceStream);
                 }
+#endif
             }
+            Log.Information($"Awaiting {copyTasks.Count} pending file copy tasks");
+            await Task.WhenAll(copyTasks);
+            Log.Information($"All pending file copy tasks completed");
 
             // Second, recurse subfolders
             foreach (ShareFileItem item in items.Where(i => i.IsDirectory))
@@ -647,7 +722,7 @@ namespace CloudResourceLib
                 ShareDirectoryClient sourceSubDirectoryClient = sourceDirectoryClient.GetSubdirectoryClient(item.Name);
                 ShareDirectoryClient destinationSubDirectoryClient = destinationDirectoryClient.GetSubdirectoryClient(item.Name);
                 destinationSubDirectoryClient.CreateIfNotExists();
-                DuplicateDirectoryContents(sourceSubDirectoryClient, destinationSubDirectoryClient);
+                await DuplicateDirectoryContents(sourceSubDirectoryClient, destinationSubDirectoryClient);
             }
         }
 
@@ -672,6 +747,6 @@ namespace CloudResourceLib
                 throw;
             }
         }
-        #endregion
+#endregion
     }
 }
