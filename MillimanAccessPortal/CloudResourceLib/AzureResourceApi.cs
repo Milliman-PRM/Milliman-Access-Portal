@@ -416,6 +416,11 @@ namespace CloudResourceLib
             #region Ensure temporary directory is created
             try
             {
+                if (Directory.Exists(localDownloadPath))
+                {
+                    Directory.Delete(localDownloadPath, true);
+                }
+
                 Directory.CreateDirectory(localDownloadPath);
             }
             catch (Exception ex)

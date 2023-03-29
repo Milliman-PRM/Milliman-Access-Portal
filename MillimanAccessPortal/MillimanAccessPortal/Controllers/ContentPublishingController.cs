@@ -1357,7 +1357,7 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem rootContentItem = await _dbContext.RootContentItem
                                                               .Include(rci => rci.ContentType)
                                                               .Where(rci => rci.Id == contentItemId)
-                                                              .FirstOrDefaultAsync();
+                                                              .SingleOrDefaultAsync();
 
             #region Validation
             if (rootContentItem == null)
