@@ -1192,12 +1192,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           labelText="30 Minutes"
                         />
                         <RadioButton
-                          id={'one-hour'}
+                          id={'sixty-minutes'}
                           selected={pendingFormData.typeSpecificPublicationProperties ?
                             pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
-                            ContainerCooldownEnum.OneHour : true}
+                            ContainerCooldownEnum.SixtyMinutes : true}
                           group={'container-cooldown'}
-                          value={ContainerCooldownEnum.OneHour}
+                          value={ContainerCooldownEnum.SixtyMinutes}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
                               inputName: 'customCooldownPeriod',
@@ -1205,7 +1205,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             });
                           }}
                           readOnly={formStateIsReadOnly}
-                          labelText="1 Hour (default)"
+                          labelText="60 Minutes (default)"
                         />
                         <RadioButton
                           id={'ninety-minutes'}
@@ -1224,12 +1224,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           labelText="90 Minutes"
                         />
                         <RadioButton
-                          id={'two-hours'}
+                          id={'one-hundred-and-twenty-minutes'}
                           selected={pendingFormData.typeSpecificPublicationProperties ?
                             pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
-                            ContainerCooldownEnum.TwoHours : false}
+                            ContainerCooldownEnum.OneHundredAndTwentyMinutes : false}
                           group={'container-cooldown'}
-                          value={ContainerCooldownEnum.TwoHours}
+                          value={ContainerCooldownEnum.OneHundredAndTwentyMinutes}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
                               inputName: 'customCooldownPeriod',
@@ -1237,7 +1237,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             });
                           }}
                           readOnly={formStateIsReadOnly}
-                          labelText="2 Hours"
+                          labelText="120 Minutes"
                         />
                       </FormFlexContainer>
                     </FormSectionRow>
