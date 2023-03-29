@@ -408,37 +408,80 @@ namespace CloudResourceLib
             }
         }
 
-        public async Task DownloadCompressedShareContents(string shareName, string localDownloadPath, string zipPath)
+        public async Task DownloadAndCompressShareContents(string shareName, string localDownloadPath, string zipPath)
         {
+            #region Ensure temporary directory is created
+            try
+            {
+                Directory.CreateDirectory(localDownloadPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error downloading compressed Azure File Share contents: local directory {localDownloadPath} could not be created.");
+                throw;
+            }
+            #endregion
+
             Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
             ShareServiceClient shareServiceClient = new ShareServiceClient(connectionString);
             ShareClient shareClient = shareServiceClient.GetShareClient(shareName);
-            Directory.CreateDirectory(localDownloadPath);
+            await DownloadDirectoryRecursiveAsync(shareClient, shareClient.GetRootDirectoryClient(), localDownloadPath, shareName);
 
-            var rootDirectoryShareClient = shareClient.GetRootDirectoryClient();
-            await DownloadDirectoryRecursiveAsync(shareClient, shareClient.GetRootDirectoryClient(), localDownloadPath);
-            ZipFile.CreateFromDirectory(localDownloadPath, zipPath);
+            #region Compression and clean-up
+            try
+            {
+                try
+                {
+                    ZipFile.CreateFromDirectory(localDownloadPath, zipPath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error compressing contents of Azure File share {shareName}, compressed from {localDownloadPath} to location {zipPath}");
+                    throw;
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(localDownloadPath, true);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error removing the temporary local directory {localDownloadPath} after compressing the Azure File Share contents.");
+                    throw;
+                }
+            }
+            #endregion
         }
 
-        private async Task DownloadDirectoryRecursiveAsync(ShareClient shareClient, ShareDirectoryClient shareDirectoryClient, string localDownloadPath)
+        private async Task DownloadDirectoryRecursiveAsync(ShareClient shareClient, ShareDirectoryClient shareDirectoryClient, string localDownloadPath, string shareName)
         {
-            await foreach (ShareFileItem nextFileItem in shareDirectoryClient.GetFilesAndDirectoriesAsync())
+            try
             {
-                string nextItemPath = Path.Combine(localDownloadPath, nextFileItem.Name);
-                if (nextFileItem.IsDirectory)
+                await foreach (ShareFileItem nextFileItem in shareDirectoryClient.GetFilesAndDirectoriesAsync())
                 {
-                    Directory.CreateDirectory(nextItemPath);
-                    ShareDirectoryClient subDirectoryClient = shareClient.GetDirectoryClient(nextFileItem.Name);
-                    await DownloadDirectoryRecursiveAsync(shareClient, subDirectoryClient, nextItemPath);
+                    string nextItemPath = Path.Combine(localDownloadPath, nextFileItem.Name);
+                    if (nextFileItem.IsDirectory)
+                    {
+                        Directory.CreateDirectory(nextItemPath);
+                        ShareDirectoryClient subDirectoryClient = shareClient.GetDirectoryClient(nextFileItem.Name);
+                        await DownloadDirectoryRecursiveAsync(shareClient, subDirectoryClient, nextItemPath, shareName);
+                    }
+                    else
+                    {
+                        ShareFileClient fileClient = shareDirectoryClient.GetFileClient(nextFileItem.Name);
+                        Response<ShareFileDownloadInfo> downloadResponse = await fileClient.DownloadAsync();
+                        using FileStream localFileStream = File.Create(nextItemPath);
+                        await downloadResponse.Value.Content.CopyToAsync(localFileStream);
+                    }
                 }
-                else
-                {
-                    ShareFileClient fileClient = shareDirectoryClient.GetFileClient(nextFileItem.Name);
-                    Response<ShareFileDownloadInfo> downloadResponse = await fileClient.DownloadAsync();
-                    using FileStream localFileStream = File.Create(nextItemPath);
-                    await downloadResponse.Value.Content.CopyToAsync(localFileStream);
-                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error downloading contents of Azure File share {shareName} to local location {localDownloadPath}");
+                return;
             }
         }
 

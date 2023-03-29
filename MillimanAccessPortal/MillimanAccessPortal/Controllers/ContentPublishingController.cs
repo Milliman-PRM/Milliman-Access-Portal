@@ -1340,7 +1340,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DownloadContainerizedAppPersistentData(Guid contentItemId)
+        public async Task<IActionResult> DownloadContainerizedAppPersistentData(Guid contentItemId, string azureShareName)
         {
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
@@ -1374,8 +1374,8 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            ContainerizedAppContentItemProperties embedProperties = (rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties);
-            if (!embedProperties.DataPersistenceEnabled)
+            ContainerizedAppContentItemProperties typeSpecificContentItemProperties = (rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties);
+            if (!typeSpecificContentItemProperties.DataPersistenceEnabled)
             {
                 Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be downloaded because data persistence is not enabled.");
                 Response.Headers.Add("Warning", "Data persistence is not enabled for this Content Item.");
@@ -1385,19 +1385,15 @@ namespace MillimanAccessPortal.Controllers
 
             string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
             AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
-            /*
-            foreach (var share in embedProperties.LiveShareDetails)
-            {
-                await azureResourceApi.DownloadCompressedShareContents(share.AzureShareName, configuredTemporaryExportsDirectory, $"{share.AzureShareName}.zip");
-            }
-            */
-            var share = embedProperties.LiveShareDetails.First();
-            string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, share.AzureShareName);
-            await azureResourceApi.DownloadCompressedShareContents(share.AzureShareName, temporaryDownloadPath, Path.Combine(configuredTemporaryExportsDirectory, $"{share.AzureShareName}.zip"));
+            var share = typeSpecificContentItemProperties.LiveShareDetails.First();
 
-            return new TemporaryPhysicalFileResult($"{configuredTemporaryExportsDirectory}/{share.AzureShareName}.zip", "application/octet-stream")
+            string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, azureShareName);
+            string temporaryZipLocation = Path.Combine(configuredTemporaryExportsDirectory, $"{azureShareName}.zip");
+            await azureResourceApi.DownloadAndCompressShareContents(azureShareName, temporaryDownloadPath, temporaryZipLocation);
+
+            return new TemporaryPhysicalFileResult(temporaryZipLocation, "application/octet-stream")
             {
-                FileDownloadName = $"{rootContentItem.ContentName}-PersistedData-{DateTime.UtcNow.ToLocalTime()}.zip"
+                FileDownloadName = $"{rootContentItem.ContentName}-PersistedData.zip"
             };
         }
 
