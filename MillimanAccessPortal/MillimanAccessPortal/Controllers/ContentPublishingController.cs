@@ -1340,7 +1340,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DownloadContainerizedAppPersistentData(Guid contentItemId, string azureShareName)
+        public async Task<IActionResult> DownloadLiveContainerizedAppPersistentData(Guid contentItemId, string userShareName)
         {
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
@@ -1386,9 +1386,10 @@ namespace MillimanAccessPortal.Controllers
             string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
             AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
 
-            string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, azureShareName);
-            string temporaryZipLocation = Path.Combine(configuredTemporaryExportsDirectory, $"{azureShareName}.zip");
-            await azureResourceApi.DownloadAndCompressShareContents(azureShareName, temporaryDownloadPath, temporaryZipLocation);
+            string tempName = Guid.NewGuid().ToString();
+            string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, tempName);
+            string temporaryZipLocation = Path.Combine(configuredTemporaryExportsDirectory, $"{tempName}.zip");
+            await azureResourceApi.DownloadAndCompressShareContents(rootContentItem.Id, userShareName, temporaryDownloadPath, temporaryZipLocation);
 
             return new TemporaryPhysicalFileResult(temporaryZipLocation, "application/octet-stream")
             {

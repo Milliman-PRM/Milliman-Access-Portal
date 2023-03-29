@@ -1145,9 +1145,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                <div style={{paddingTop: '1rem'}}>
                                  <a
                                    href={
-                                     `./ContentPublishing/DownloadContainerizedAppPersistentData?contentItemId=
-                                     ${pendingFormData.id}&azureShareName=
-                                     ${share.azureShareName}`
+                                     `./ContentPublishing/DownloadLiveContainerizedAppPersistentData?contentItemId=
+                                     ${pendingFormData.id}&userShareName=${share.userShareName}`
                                    }
                                    download={true}
                                  >

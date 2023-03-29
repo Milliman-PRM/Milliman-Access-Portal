@@ -408,8 +408,11 @@ namespace CloudResourceLib
             }
         }
 
-        public async Task DownloadAndCompressShareContents(string shareName, string localDownloadPath, string zipPath)
+        public async Task DownloadAndCompressShareContents(Guid contentItemId, string userShareName, string localDownloadPath, string zipPath)
         {
+            List<string> possibleShareNames = GetExistingShareNamesForContent(contentItemId, userShareName, false);
+            string targetedShareName = possibleShareNames.SingleOrDefault();
+
             #region Ensure temporary directory is created
             try
             {
@@ -425,8 +428,8 @@ namespace CloudResourceLib
             Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
             ShareServiceClient shareServiceClient = new ShareServiceClient(connectionString);
-            ShareClient shareClient = shareServiceClient.GetShareClient(shareName);
-            await DownloadDirectoryRecursiveAsync(shareClient, shareClient.GetRootDirectoryClient(), localDownloadPath, shareName);
+            ShareClient shareClient = shareServiceClient.GetShareClient(targetedShareName);
+            await DownloadDirectoryRecursiveAsync(shareClient, shareClient.GetRootDirectoryClient(), localDownloadPath, targetedShareName);
 
             #region Compression and clean-up
             try
@@ -437,7 +440,7 @@ namespace CloudResourceLib
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"Error compressing contents of Azure File share {shareName}, compressed from {localDownloadPath} to location {zipPath}");
+                    Log.Error(ex, $"Error compressing contents of Azure File share {targetedShareName}, compressed from {localDownloadPath} to location {zipPath}");
                     throw;
                 }
             }
