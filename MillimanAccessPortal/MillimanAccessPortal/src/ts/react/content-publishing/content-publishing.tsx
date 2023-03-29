@@ -1975,7 +1975,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <div><b>Allocated RAM:</b> {goLiveSummary.typeSpecificMetadata.ram} GB</div>
         <br />
       </GoLiveSection>
-    );
+      );
+    const containerizedAppPersistedData = goLiveSummary && goLiveSummary.typeSpecificMetadata &&
+      goLiveSummary.contentTypeName === 'ContainerApp' &&
+      goLiveSummary.typeSpecificMetadata.dataPersistenceEnabled === 'True' && ( // Temporary
+        <GoLiveSection
+          title="Container Persisted Data"
+          checkboxLabel="Changes made to the existing persisted dataset are as expected"
+          checkboxTarget="containerPersistedDatachanges"
+          checkboxSelectedValue={elementsToConfirm.containerPersistedDatachanges}
+          checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+        >
+          <br />
+        </GoLiveSection>
+      );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
       <>
         <h3>Attestation</h3>
@@ -2003,6 +2016,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           {hierarchyValues}
           {selectionGroups}
           {containerizedAppConfigurations}
+          {containerizedAppPersistedData}
           {attestationLanguage}
         </ContentPanelSectionContent>
         <div className="go-live-button-container">

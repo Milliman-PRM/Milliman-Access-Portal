@@ -1474,6 +1474,10 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     if (action.response.contentTypeName === 'ContainerApp' && action.response.typeSpecificMetadata) {
       elementsToConfirm.containerConfigurations = false;
     }
+    if (action.response.contentTypeName === 'ContainerApp' && action.response.typeSpecificMetadata &&
+        action.response.typeSpecificMetadata.dataPersistenceEnabled) {
+      elementsToConfirm.containerPersistedDataChanges = false;
+    }
 
     return {
       ...state,

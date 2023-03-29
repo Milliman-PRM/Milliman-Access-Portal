@@ -227,6 +227,7 @@ export interface ContainerizedAppTypeSpecificMetadata {
   applicationPort: string;
   cpuCores: string;
   ram: string;
+  dataPersistenceEnabled: string;
 }
 export interface SelectionGroupSummary {
   id: Guid;
