@@ -1092,6 +1092,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           <Toggle
                             label="Data Persistence"
                             checked={pendingFormData.typeSpecificPublicationProperties &&
+                              pendingFormData.typeSpecificDetailObject &&
                               pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled}
                             onClick={() => this.props.setPublishingFormBooleanInputValue({
                               inputName: 'dataPersistenceEnabled',
