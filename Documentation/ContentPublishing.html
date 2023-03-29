@@ -145,11 +145,11 @@
                     <th>Present if data persistence is enabled</th>
                     <th>Present if data persistence is disabled</th>
                     <th>Value if data persistence is enabled</th>
-                    <th>Value if data persitence is enabled</th>
+                    <th>Value if data persistence is disabled</th>
                 </tr>
                 <tr>
                     <td>MAP_URL_PATH_BASE</td>
-                    <td>The path base used in MAP for accessing the Container</td>
+                    <td>The path base used in MAP for accessing the Container. Application designers may need to prepend this value as the first segment of the path to any URL within an application that Users may use for navigation purposes (HTML linked resources, page redirects, etc.) in order to see navigation in the application work as expected. Some frameworks, such as ASP.NET may have settings that automate this and can prevent all links in an application from needing to be changed manually.</td>
                     <td>True</td>
                     <td>True</td>
                     <td>The path base belonging to the specific Content Item</td>
@@ -189,15 +189,15 @@
                 </tr>
                 <tr>
                     <td>MAP_SELECTION_GROUP_NAME</td>
-                    <td>The name of the MAP Selection Group name for this Content (This value will not be injected for non-live Content Items).</td>
+                    <td>The name of the MAP Selection Group name for this Content (This value will be replaced with <code>PREVIEW_CONTAINER</code> for preview Content).</td>
                     <td>True</td>
                     <td>True</td>
-                    <td>The MAP Selection Group name</td>
-                    <td>The MAP Selection Group name</td>
+                    <td>The MAP Selection Group name (or <code>PREVIEW_CONTAINER</code>)</td>
+                    <td>The MAP Selection Group name (or <code>PREVIEW_CONTAINER</code>)</td>
                 </tr>
             </table>
             <p><b>Accessing the User Context</b></p>
-            <p>The current user context can be accessed via any requests being received by the Containerized App via a specialized <i>request header.</i> All requests received by the Containerized App from MAP will contain a request header with the name of <code>map-user-id</code> and a value of the current User's username, which comes in the form of the User's email address, lowercased. Application designers can use this value to customize further behavior based on which User is making requests.</p>
+            <p>The current user context can be accessed via any requests being received by the Containerized App via a specialized <i>request header.</i> All requests received by the Containerized App from MAP will contain a request header with the name of <code>map-username</code> and a value of the current User's username, which comes in the form of the User's email address, lowercased. Application designers can use this value to customize further behavior based on which User is making requests.</p>
         </p>
     </div>
     <div class="accordion">
