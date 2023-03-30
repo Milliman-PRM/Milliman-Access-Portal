@@ -137,6 +137,7 @@ namespace MapDbContextLib.Models
         public string TimeZoneId { get; set; }
 
         public List<ContainerSharePublicationInfo> ShareInfo { get; set; } = new List<ContainerSharePublicationInfo>();
+        public Dictionary<string,List<string>> ReplacedShareFiles { get; set; } = null;
     }
 
     internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>

@@ -4,10 +4,10 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using Newtonsoft.Json.Linq;
+using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
-using MapDbContextLib.Models;
+using System.Text.Json.Nodes;
 
 namespace AuditLogLib.Models
 {
@@ -25,7 +25,7 @@ namespace AuditLogLib.Models
         public Guid ClientId;
         public string ClientName;
         public string ClientCode;
-        public JArray SelectionGroupSummary;
-        public Dictionary<string, string> TypeSpecificMetadata;
+        public JsonArray SelectionGroupSummary;
+        public Dictionary<string, object> TypeSpecificMetadata;
     }
 }

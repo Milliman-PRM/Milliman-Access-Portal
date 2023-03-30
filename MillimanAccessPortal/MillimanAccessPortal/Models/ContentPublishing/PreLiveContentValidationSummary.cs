@@ -12,12 +12,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
@@ -42,7 +42,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValueChange> ReductionHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; } = null;
         public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; } = new List<AssociatedFilePreviewSummary>();
-        public Dictionary<string,string> TypeSpecificMetadata { get; set; } = new Dictionary<string,string>();
+        public Dictionary<string,object> TypeSpecificMetadata { get; set; } = new Dictionary<string,object>();
 
         public static async Task<PreLiveContentValidationSummary> BuildAsync(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -360,8 +360,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 case ContentTypeEnum.PowerBi:
                     if (PubRequest.RootContentItem.DoesReduce && !string.IsNullOrWhiteSpace(PubRequest.TypeSpecificDetail))
                     {
-                        PowerBiPublicationProperties pbiTypeSpecificProps = JsonConvert.DeserializeObject<PowerBiPublicationProperties>(PubRequest.TypeSpecificDetail);
-                        ReturnObj.TypeSpecificMetadata = new Dictionary<string, string>
+                        PowerBiPublicationProperties pbiTypeSpecificProps = JsonSerializer.Deserialize<PowerBiPublicationProperties>(PubRequest.TypeSpecificDetail);
+                        ReturnObj.TypeSpecificMetadata = new Dictionary<string, object>
                         {
                             { "Roles", string.Join(",", pbiTypeSpecificProps.RoleList) },
                         };
@@ -370,12 +370,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
                 case ContentTypeEnum.ContainerApp:
                     ContainerizedAppContentItemProperties typeSpecificProps = PubRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                    ReturnObj.TypeSpecificMetadata = new Dictionary<string, string>
+                    ReturnObj.TypeSpecificMetadata = new Dictionary<string, object>
                     {
                         { "cpuCores", typeSpecificProps.PreviewContainerCpuCores.GetDisplayNameString() },
                         { "applicationPort", typeSpecificProps.PreviewContainerInternalPort.ToString() },
                         { "ram", typeSpecificProps.PreviewContainerRamGb.GetDisplayNameString() },
                     };
+
+                    ContainerizedContentPublicationProperties containerPubTypeSpecificProps = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(PubRequest.TypeSpecificDetail);
+                    if (typeSpecificProps.DataPersistenceEnabled && containerPubTypeSpecificProps.ReplacedShareFiles is not null)
+                    {
+                        ReturnObj.TypeSpecificMetadata.Add("replacedShareFiles", containerPubTypeSpecificProps.ReplacedShareFiles);
+                    }
+                        
                     break;
             }
 
@@ -431,8 +438,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ClientId = source.ClientId,
                 ClientName = source.ClientName,
                 ClientCode = source.ClientCode,
-                SelectionGroupSummary = source.SelectionGroups != null
-                    ? JArray.FromObject(source.SelectionGroups)
+                SelectionGroupSummary = source?.SelectionGroups != null
+                    ? JsonArray.Parse(JsonSerializer.Serialize(source.SelectionGroups)) as JsonArray
                     : null,
                 TypeSpecificMetadata = source.TypeSpecificMetadata,
             };

@@ -400,7 +400,7 @@ namespace CloudResourceLib
                                 bool fileOverwritten = await UploadFileToShare(tempFileName, shareName, entry.FullName, overwriteExistingFiles);
                                 if (fileOverwritten)
                                 {
-                                    overwrittenFiles.Add(entry.FullName);
+                                    overwrittenFiles.Add(entry.FullName.StartsWith('/') ? entry.FullName : $"/{entry.FullName}");
                                 }
                             }
                             finally
@@ -592,9 +592,12 @@ namespace CloudResourceLib
                 FileInfo fileInfo = new FileInfo(fileName);
                 targetFileClient.Create(fileInfo.Length);
 
-                using (FileStream sourceFileStream = File.OpenRead(fileName))
+                if (fileInfo.Length > 0)
                 {
-                    targetFileClient.Upload(sourceFileStream);
+                    using (FileStream sourceFileStream = File.OpenRead(fileName))
+                    {
+                        targetFileClient.Upload(sourceFileStream);
+                    }
                 }
 
                 return returnVal;
@@ -693,7 +696,6 @@ namespace CloudResourceLib
                 {
                     case CopyStatus.Pending:
                         copyTasks.Add(WaitForCopyComplete(destinationFileClient));
-                        Log.Information($"Starting a pending async file copy operation for destination file {item.Name}");
                         break;
                     case CopyStatus.Aborted:
                     case CopyStatus.Failed:
@@ -701,7 +703,6 @@ namespace CloudResourceLib
                         // TODO do something more
                         break;
                     case CopyStatus.Success:
-                        Log.Information($"File copy request for destination file {item.Name} resulted in success status");
                         break;
                 }
 #else //  TODO this technique streams the contents of every file to and from MAP
@@ -712,9 +713,8 @@ namespace CloudResourceLib
                 }
 #endif
             }
-            Log.Information($"Awaiting {copyTasks.Count} pending file copy tasks");
+            Log.Debug($"Awaiting {copyTasks.Count} pending file copy tasks");
             await Task.WhenAll(copyTasks);
-            Log.Information($"All pending file copy tasks completed");
 
             // Second, recurse subfolders
             foreach (ShareFileItem item in items.Where(i => i.IsDirectory))
