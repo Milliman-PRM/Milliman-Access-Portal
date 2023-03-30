@@ -380,9 +380,30 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     };
 
                     ContainerizedContentPublicationProperties containerPubTypeSpecificProps = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(PubRequest.TypeSpecificDetail);
-                    if (typeSpecificProps.DataPersistenceEnabled && containerPubTypeSpecificProps.ReplacedShareFiles is not null)
+                    if (typeSpecificProps.DataPersistenceEnabled)
                     {
-                        ReturnObj.TypeSpecificMetadata.Add("replacedShareFiles", containerPubTypeSpecificProps.ReplacedShareFiles);
+                        Dictionary<string, object> shareInfo = new Dictionary<string, object>();
+
+                        foreach (var share in typeSpecificProps.PreviewShareDetails)
+                        {
+                            List<string> replacedFiles = default;
+                            if (containerPubTypeSpecificProps?.ReplacedShareFiles is not null)
+                            {
+                                bool replacedFileListFound = containerPubTypeSpecificProps.ReplacedShareFiles.TryGetValue(share.UserShareName, out replacedFiles);
+                            }
+
+                            // TODO calculate other share details here
+
+                            object v = new
+                            {
+                                ReplacedFiles = replacedFiles,
+                                // TODO include other share details here
+                            };
+
+                            shareInfo.Add(share.UserShareName, v);
+                        }
+
+                        ReturnObj.TypeSpecificMetadata.Add("fileShares", shareInfo);
                     }
                         
                     break;
