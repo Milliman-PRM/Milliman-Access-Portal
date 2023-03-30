@@ -121,8 +121,9 @@ namespace CloudResourceLib
                     StorageSku sku = new(StorageSkuName.StandardGrs);
                     StorageKind kind = StorageKind.StorageV2;
                     StorageAccountCreateOrUpdateContent creationParams = new StorageAccountCreateOrUpdateContent(sku, kind, _resourceLocation) 
-                        { 
-                            // TODO Set any properties here?
+                        {
+                            MinimumTlsVersion = StorageMinimumTlsVersion.Tls1_2,
+                            // TODO Set any more properties here?
                         };
                     ArmOperation<StorageAccountResource> storageAccountCreateOperation = storageAccountCollection.CreateOrUpdate(WaitUntil.Completed, StorageAccountName(clientId), creationParams);
                     _storageAccount = storageAccountCreateOperation.Value;
@@ -526,6 +527,7 @@ namespace CloudResourceLib
                     Log.Information($"Preparing to delete file share named {fileShareResource.Data.Name} in storage account named {_storageAccount.Data.Name} using connection string {connectionString}");
                     ShareClient shareClient = new ShareClient(connectionString, fileShareResource.Data.Name);
                     bool response = await shareClient.DeleteIfExistsAsync(); // May take several minutes after initiated.
+                    Log.Information($"Delete of file share named {fileShareResource.Data.Name} complete");
                 }
                 catch (Azure.RequestFailedException ex) when (ex.HResult == -2146233088)  // GetFileShare throws this when the share is not found
                 {
