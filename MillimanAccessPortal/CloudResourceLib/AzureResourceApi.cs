@@ -339,15 +339,19 @@ namespace CloudResourceLib
                 {
                     foreach (string existingName in existingShareNames)
                     {
+                        Log.Information($"Removing existing share named {existingName}");
                         await RemoveFileShareIfExistsAsync(existingName);
+                        Log.Information($"Removed existing share named {existingName}");
                     };
                 }
 
                 try
                 {
                     // If the name is in use by a share currently being deleted this will throw
+                    Log.Information($"Creating new share named {newFileShareName}");
                     ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Completed, newFileShareName, new FileShareData());
                     await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
+                    Log.Information($"Created new share named {newFileShareName}");
 
                     return newFileShareName;
                 }
@@ -519,6 +523,7 @@ namespace CloudResourceLib
                 {
                     FileShareResource fileShareResource = _fileService.GetFileShare(name);
                     connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+                    Log.Information($"Preparing to delete file share named {fileShareResource.Data.Name} in storage account named {_storageAccount.Data.Name} using connection string {connectionString}");
                     ShareClient shareClient = new ShareClient(connectionString, fileShareResource.Data.Name);
                     bool response = await shareClient.DeleteIfExistsAsync(); // May take several minutes after initiated.
                 }
