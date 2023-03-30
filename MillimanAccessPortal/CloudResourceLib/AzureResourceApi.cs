@@ -339,15 +339,12 @@ namespace CloudResourceLib
                 {
                     foreach (string existingName in existingShareNames)
                     {
-                        Log.Debug($"Deleting share {existingName}");  // temporary or improve
                         await RemoveFileShareIfExistsAsync(existingName);
                     };
                 }
 
                 try
                 {
-                    Log.Debug($"Creating share {newFileShareName}");  // temporary or improve
-
                     // If the name is in use by a share currently being deleted this will throw
                     ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Completed, newFileShareName, new FileShareData());
                     await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
@@ -365,8 +362,7 @@ namespace CloudResourceLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Error creating Azure file share for: contentItemId=<{contentItemId}>, shortName=<{shortName}>, isPreview=<{isPreview}>");  // temporary or improve
-                throw;
+                throw new AggregateException($"Error creating Azure file share for: contentItemId=<{contentItemId}>, shortName=<{shortName}>, isPreview=<{isPreview}>", ex);
             }
         }
 
@@ -515,13 +511,14 @@ namespace CloudResourceLib
         /// <returns></returns>
         public async Task RemoveFileShareIfExistsAsync(string name)
         {
+            string connectionString = string.Empty;
             try
             {
                 Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
                 try
                 {
                     FileShareResource fileShareResource = _fileService.GetFileShare(name);
-                    string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+                    connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
                     ShareClient shareClient = new ShareClient(connectionString, fileShareResource.Data.Name);
                     bool response = await shareClient.DeleteIfExistsAsync(); // May take several minutes after initiated.
                 }
@@ -533,8 +530,7 @@ namespace CloudResourceLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Error removing Azure File Share named: <{name}>");  // temporary or improve
-                throw;
+                throw new AggregateException($"Error removing Azure File Share named: <{name}>, ShareClient connection string is {connectionString}", ex);
             }
         }
 
