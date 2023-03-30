@@ -423,6 +423,91 @@ namespace CloudResourceLib
             return overwrittenFiles;
         }
 
+        public async Task DownloadAndCompressShareContents(Guid contentItemId, string userShareName, string localDownloadPath, string zipPath)
+        {
+            List<string> possibleShareNames = GetExistingShareNamesForContent(contentItemId, userShareName, false);
+            string targetedShareName = possibleShareNames.SingleOrDefault();
+
+            #region Ensure temporary directory is created
+            try
+            {
+                if (Directory.Exists(localDownloadPath))
+                {
+                    Directory.Delete(localDownloadPath, true);
+                }
+
+                Directory.CreateDirectory(localDownloadPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error downloading compressed Azure File Share contents: local directory {localDownloadPath} could not be created.");
+                throw;
+            }
+            #endregion
+
+            Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+            ShareServiceClient shareServiceClient = new ShareServiceClient(connectionString);
+            ShareClient shareClient = shareServiceClient.GetShareClient(targetedShareName);
+            await DownloadDirectoryRecursiveAsync(shareClient, shareClient.GetRootDirectoryClient(), localDownloadPath, targetedShareName);
+
+            #region Compression and clean-up
+            try
+            {
+                try
+                {
+                    ZipFile.CreateFromDirectory(localDownloadPath, zipPath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error compressing contents of Azure File share {targetedShareName}, compressed from {localDownloadPath} to location {zipPath}");
+                    throw;
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(localDownloadPath, true);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error removing the temporary local directory {localDownloadPath} after compressing the Azure File Share contents.");
+                    throw;
+                }
+            }
+            #endregion
+        }
+
+        private async Task DownloadDirectoryRecursiveAsync(ShareClient shareClient, ShareDirectoryClient shareDirectoryClient, string localDownloadPath, string shareName)
+        {
+            try
+            {
+                await foreach (ShareFileItem nextFileItem in shareDirectoryClient.GetFilesAndDirectoriesAsync())
+                {
+                    string nextItemPath = Path.Combine(localDownloadPath, nextFileItem.Name);
+                    if (nextFileItem.IsDirectory)
+                    {
+                        Directory.CreateDirectory(nextItemPath);
+                        ShareDirectoryClient subDirectoryClient = shareClient.GetDirectoryClient(nextFileItem.Name);
+                        await DownloadDirectoryRecursiveAsync(shareClient, subDirectoryClient, nextItemPath, shareName);
+                    }
+                    else
+                    {
+                        ShareFileClient fileClient = shareDirectoryClient.GetFileClient(nextFileItem.Name);
+                        Response<ShareFileDownloadInfo> downloadResponse = await fileClient.DownloadAsync();
+                        using FileStream localFileStream = File.Create(nextItemPath);
+                        await downloadResponse.Value.Content.CopyToAsync(localFileStream);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error downloading contents of Azure File share {shareName} to local location {localDownloadPath}");
+                return;
+            }
+        }
+
         /// <summary>
         /// Removes a File Share.
         /// </summary>

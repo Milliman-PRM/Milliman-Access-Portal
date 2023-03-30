@@ -128,6 +128,7 @@ export interface ContentItemDetail {
     liveEmbedUrl?: string;
     liveReportId?: Guid;
     liveWorkspaceId?: Guid;
+    liveShareDetails?: ContainerSharePublicationInfo[];
     navigationPaneEnabled?: boolean;
     previewEmbedUrl?: string;
     previewReportId?: Guid;

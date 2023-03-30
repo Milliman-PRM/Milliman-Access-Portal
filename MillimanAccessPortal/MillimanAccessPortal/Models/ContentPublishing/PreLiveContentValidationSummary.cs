@@ -375,6 +375,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         { "cpuCores", typeSpecificProps.PreviewContainerCpuCores.GetDisplayNameString() },
                         { "applicationPort", typeSpecificProps.PreviewContainerInternalPort.ToString() },
                         { "ram", typeSpecificProps.PreviewContainerRamGb.GetDisplayNameString() },
+                        { "dataPersistenceEnabled", typeSpecificProps.DataPersistenceEnabled.ToString() },
+                        // TODO 3/29/23 Will need to also inject a value here to give publishers the ability to download whatever is currently live before it gets overwritten by an approved publication. Going to wait on Tom because I know he's doing some work in this same space to show overwritten files.
                     };
 
                     ContainerizedContentPublicationProperties containerPubTypeSpecificProps = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(PubRequest.TypeSpecificDetail);

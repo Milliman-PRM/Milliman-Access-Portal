@@ -906,7 +906,7 @@ namespace MillimanAccessPortal.Controllers
                                                                                                       { "MAP_CHECK", "1" },
                                                                                                       { "MAP_CLIENT_NAME", resourceTags.ClientName },
                                                                                                       { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
-                                                                                                      { "MAP_SELECTION_GROUP_NAME", "PREVIEW_CONTAINER" },
+                                                                                                      { "MAP_SELECTION_GROUP_NAME", isLiveContent ? resourceTags.SelectionGroupName : "PREVIEW_CONTAINER" },
                                                                                                     },
                                                                      contentItem.ClientId,
                                                                      isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);

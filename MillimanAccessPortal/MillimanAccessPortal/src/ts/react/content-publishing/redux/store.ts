@@ -127,6 +127,7 @@ export interface ElementsToConfirm {
   reductionHierarchy?: boolean;
   selectionGroups?: boolean;
   containerConfigurations?: boolean;
+  containerPersistedDataChanges?: boolean;
 }
 
 /**

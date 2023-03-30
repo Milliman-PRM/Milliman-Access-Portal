@@ -1350,6 +1350,64 @@ namespace MillimanAccessPortal.Controllers
                 FileDownloadName = $"{rootContentItem.ContentName}.pbix" };
         }
 
+        [HttpGet]
+        public async Task<IActionResult> DownloadLiveContainerizedAppPersistentData(Guid contentItemId, string userShareName)
+        {
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
+            if (!authorization.Succeeded)
+            {
+                ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.GetDisplayNameString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.Id);
+                Response.Headers.Add("Warning", "You are not authorized to download this item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem rootContentItem = await _dbContext.RootContentItem
+                                                              .Include(rci => rci.ContentType)
+                                                              .Where(rci => rci.Id == contentItemId)
+                                                              .SingleOrDefaultAsync();
+
+            #region Validation
+            if (rootContentItem == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be found, aborting.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            if (rootContentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} has an invalid ContentType.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            ContainerizedAppContentItemProperties typeSpecificContentItemProperties = (rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties);
+            if (!typeSpecificContentItemProperties.DataPersistenceEnabled)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be downloaded because data persistence is not enabled.");
+                Response.Headers.Add("Warning", "Data persistence is not enabled for this Content Item.");
+                return BadRequest();
+            }
+            #endregion
+
+            string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
+            AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+
+            string tempName = Guid.NewGuid().ToString();
+            string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, tempName);
+            string temporaryZipLocation = Path.Combine(configuredTemporaryExportsDirectory, $"{tempName}.zip");
+            await azureResourceApi.DownloadAndCompressShareContents(rootContentItem.Id, userShareName, temporaryDownloadPath, temporaryZipLocation);
+
+            return new TemporaryPhysicalFileResult(temporaryZipLocation, "application/octet-stream")
+            {
+                FileDownloadName = $"{rootContentItem.ContentName}-PersistedData.zip"
+            };
+        }
+
         private async Task<RootContentItem> JsonToRootContentItemAsync(JObject jObject)
         {
             RootContentItem model = default;

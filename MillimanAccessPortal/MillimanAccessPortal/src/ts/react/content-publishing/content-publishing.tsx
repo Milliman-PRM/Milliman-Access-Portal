@@ -1092,6 +1092,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           <Toggle
                             label="Data Persistence"
                             checked={pendingFormData.typeSpecificPublicationProperties &&
+                              pendingFormData.typeSpecificDetailObject &&
                               pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled}
                             onClick={() => this.props.setPublishingFormBooleanInputValue({
                               inputName: 'dataPersistenceEnabled',
@@ -1138,26 +1139,42 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               readOnly={formStateIsReadOnly}
                             />
                           </FormFlexContainer>
-                          <FormFlexContainer flex={false}>
-                            <div style={{paddingTop: '1rem'}}>
-                              <ActionIcon label="Download live data" icon="download" />
-                            </div>
-                          </FormFlexContainer>
+                          {pendingFormData.typeSpecificDetailObject.liveShareDetails &&
+                           pendingFormData.typeSpecificDetailObject.liveShareDetails.length > 0 &&
+                           pendingFormData.typeSpecificDetailObject.liveShareDetails.map((share, key) => (
+                             <FormFlexContainer flex={false} key={key}>
+                               <div style={{paddingTop: '1rem'}}>
+                                 <a
+                                   href={
+                                     `./ContentPublishing/DownloadLiveContainerizedAppPersistentData?contentItemId=
+                                     ${pendingFormData.id}&userShareName=${share.userShareName}`
+                                   }
+                                   download={true}
+                                 >
+                                   <ActionIcon label="Download live data" icon="download" />
+                                 </a>
+                               </div>
+                             </FormFlexContainer>
+                           ))
+                          }
                         </FormSectionRow>
-                        <FormSectionRow>
-                          <Checkbox
-                            name="Remove all existing data"
-                            selected={
-                              pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication
-                            }
-                            onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                              inputName: 'removeExistingDataWithPublication',
-                              value: val,
-                            })}
-                            readOnly={formStateIsReadOnly}
-                            description={''}
-                          />
-                        </FormSectionRow>
+                        {pendingFormData.typeSpecificDetailObject.liveShareDetails &&
+                         pendingFormData.typeSpecificDetailObject.liveShareDetails.length > 0 &&
+                          <FormSectionRow>
+                            <Checkbox
+                              name="Remove all existing data"
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'removeExistingDataWithPublication',
+                                value: val,
+                              })}
+                              readOnly={formStateIsReadOnly}
+                              description={''}
+                            />
+                          </FormSectionRow>
+                        }
                       </>
                     }
                     <FormSectionRow>
@@ -1958,7 +1975,20 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <div><b>Allocated RAM:</b> {goLiveSummary.typeSpecificMetadata.ram} GB</div>
         <br />
       </GoLiveSection>
-    );
+      );
+    const containerizedAppPersistedData = goLiveSummary && goLiveSummary.typeSpecificMetadata &&
+      goLiveSummary.contentTypeName === 'ContainerApp' &&
+      goLiveSummary.typeSpecificMetadata.dataPersistenceEnabled === 'True' && ( // Temporary
+        <GoLiveSection
+          title="Container Persisted Data"
+          checkboxLabel="Changes made to the existing persisted dataset are as expected"
+          checkboxTarget="containerPersistedDataChanges"
+          checkboxSelectedValue={elementsToConfirm.containerPersistedDatachanges}
+          checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+        >
+          <br />
+        </GoLiveSection>
+      );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
       <>
         <h3>Attestation</h3>
@@ -1986,6 +2016,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           {hierarchyValues}
           {selectionGroups}
           {containerizedAppConfigurations}
+          {containerizedAppPersistedData}
           {attestationLanguage}
         </ContentPanelSectionContent>
         <div className="go-live-button-container">
