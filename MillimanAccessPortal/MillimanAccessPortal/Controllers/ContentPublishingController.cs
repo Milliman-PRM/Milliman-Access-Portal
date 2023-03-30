@@ -546,6 +546,17 @@ namespace MillimanAccessPortal.Controllers
                         await api.DeleteRepository();
                     }
                     // Any running container instances will be quickly handled by the maintenance thread
+
+                    // Delete any file shares
+                    AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+                    foreach (var shareInfo in containerizedAppProps.LiveShareDetails)
+                    {
+                        List<string> names = azureResourceApi.GetExistingShareNamesForContent(rootContentItem.Id, shareInfo.UserShareName, null);
+                        foreach (string name in names)
+                        {
+                            await azureResourceApi.RemoveFileShareIfExistsAsync(name);
+                        }
+                    }
                     break;
 
                 case ContentTypeEnum.Html:

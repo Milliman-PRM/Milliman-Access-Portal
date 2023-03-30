@@ -243,24 +243,28 @@ namespace CloudResourceLib
         /// If any share is currently being deleted, the name of that share will not be return by this method
         /// </summary>
         /// <param name="contentItemId"></param>
-        /// <param name="name"></param>
-        /// <param name="isPreview"></param>
+        /// <param name="name">The user share name</param>
+        /// <param name="isPreview">Nullable!  If not null then the value is used to filter results by preview or live status</param>
         /// <returns></returns>
-        private List<string> GetExistingShareNamesForContent(Guid contentItemId, string name, bool isPreview)
+        public List<string> GetExistingShareNamesForContent(Guid contentItemId, string name, bool? isPreview)
         {
             IEnumerable<string> query = _fileService.GetFileShares()
+                                                    .Where(s => !(s.Data.IsDeleted.HasValue && s.Data.IsDeleted.Value))
                                                     .Select(s => s.Data.Name)
                                                     .Where(n => n.StartsWith($"content-{contentItemId.ToString("N")}-{name}-"));
-            query = isPreview
-                  ? query.Where(n => n.EndsWith("-preview"))
-                  : query.Where(n => !n.EndsWith("-preview"));
+            if (isPreview.HasValue)
+            {
+                query = isPreview.Value
+                      ? query.Where(n => n.EndsWith("-preview"))
+                      : query.Where(n => !n.EndsWith("-preview"));
+            }
 
             List<string> fileShareNames = query.ToList();
 
             return fileShareNames;
         }
 
-        public bool FindExistingShareByName(Guid contentItemId, string name, bool isPreview, out string existingShareResource)
+        public bool FindExistingShareByName(Guid contentItemId, string name, bool isPreview, out string existingShareName)
         {
             FileShareCollection fileShareCollection = _fileService.GetFileShares();
 
@@ -274,12 +278,12 @@ namespace CloudResourceLib
 
             if (foundShare != null)
             {
-                existingShareResource = foundShare.Data.Name;
+                existingShareName = foundShare.Data.Name;
                 return true;
             }
             else
             {
-                existingShareResource = null;
+                existingShareName = null;
                 return false;
             }
         }
