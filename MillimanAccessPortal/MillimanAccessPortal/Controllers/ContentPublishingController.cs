@@ -809,6 +809,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             var rootContentItem = await _dbContext.RootContentItem
                                                   .Include(c => c.Client)
+                                                  .Include(c => c.ContentType)
                                                   .SingleOrDefaultAsync(c => c.Id == rootContentItemId);
 
             #region Preliminary validation
@@ -892,6 +893,22 @@ namespace MillimanAccessPortal.Controllers
                 {
                     Directory.Delete(containingFolder);
                 }
+            }
+
+            switch (rootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.PowerBi:
+                    // TODO remove any imported reports from Power BI
+                    break;
+                case ContentTypeEnum.ContainerApp:
+                    // TODO remove any containers and images
+                    break;
+
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Qlikview:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
+                    break;
             }
 
             // Delete live ready files (including associated files)
