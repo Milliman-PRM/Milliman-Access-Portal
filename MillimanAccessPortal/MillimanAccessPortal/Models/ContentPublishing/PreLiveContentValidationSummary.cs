@@ -403,7 +403,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             shareInfo.Add(share.UserShareName, v);
                         }
 
-                        ReturnObj.TypeSpecificMetadata.Add("fileShares", shareInfo);
+                        //ReturnObj.TypeSpecificMetadata.Add("fileShares", shareInfo);
                     }
                         
                     break;

@@ -51,6 +51,7 @@ import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
 import { TabRow } from '../shared-components/tab-row';
+import { FileShareDiffs } from './file-share-diffs';
 import { GoLiveSection } from './go-live-section';
 import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
@@ -1978,7 +1979,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       );
     const containerizedAppPersistedData = goLiveSummary && goLiveSummary.typeSpecificMetadata &&
       goLiveSummary.contentTypeName === 'ContainerApp' &&
-      goLiveSummary.typeSpecificMetadata.dataPersistenceEnabled === 'True' && ( // Temporary
+      goLiveSummary.typeSpecificMetadata.dataPersistenceEnabled === 'True' &&
+      goLiveSummary.typeSpecificMetadata.fileShares && (
         <GoLiveSection
           title="Container Persisted Data"
           checkboxLabel="Changes made to the existing persisted dataset are as expected"
@@ -1986,7 +1988,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           checkboxSelectedValue={elementsToConfirm.containerPersistedDatachanges}
           checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
         >
-          <br />
+          <FileShareDiffs fileShares={goLiveSummary.typeSpecificMetadata.fileShares} />
         </GoLiveSection>
       );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
