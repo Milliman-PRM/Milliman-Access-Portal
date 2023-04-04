@@ -33,6 +33,7 @@ namespace CloudResourceLib
         public string TenantId { get; private init; }
         public string ClientId { get; private init; }
         public string ClientSecret { get; private init; }
+        public string SubscriptionId { get; private init; }
 
         // An instance of this class can not be constructed directly
         private AzureClientCredential() { }
@@ -44,7 +45,7 @@ namespace CloudResourceLib
         /// <param name="clientId"></param>
         /// <param name="clientSecret"></param>
         /// <returns></returns>
-        public static AzureClientCredential NewInstance(CredentialScope scope, string tenantId, string clientId, string clientSecret)
+        public static AzureClientCredential NewInstance(CredentialScope scope, string tenantId, string clientId, string clientSecret, string subscriptionId = null)
         {
             if (string.IsNullOrEmpty(tenantId) ||
                 string.IsNullOrEmpty(clientId) ||
@@ -58,7 +59,8 @@ namespace CloudResourceLib
                 Scope = scope,
                 TenantId = tenantId,
                 ClientId = clientId,
-                ClientSecret = clientSecret
+                ClientSecret = clientSecret,
+                SubscriptionId = subscriptionId
             };
         }
     }
@@ -76,6 +78,7 @@ namespace CloudResourceLib
         private static ArmClient _containerRegistryClient = null;
         private static ArmClient _containerInstanceClient = null;
 
+        private static string _storageSubscriptionId = null;
         private static AzureLocation _resourceLocation;
 
         private SubscriptionResource _storageSubscription = null;
@@ -86,6 +89,12 @@ namespace CloudResourceLib
         private Func<Guid,string> StorageAccountName = clientId => $"client{clientId.ToString("N").Substring(0, 16)}";
         private Func<Guid,string> StorageResourceGroupName = clientId => $"map-client-{clientId}";
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="scope">May contain one or more bitflag values that this instance must be valid for</param>
+        /// <param name="subscriptionId">If not provided, the "default subscription" of the tenant will be assumed</param>
         public AzureResourceApi(Guid clientId, CredentialScope scope)
         {
             // Verify that the api is initialized with credentials for the requested scope
@@ -100,7 +109,9 @@ namespace CloudResourceLib
                     break;
 
                 case CredentialScope.Storage:
-                    _storageSubscription = _storageClient.GetDefaultSubscription();
+                    _storageSubscription = _storageSubscriptionId == null
+                                         ? _storageClient.GetDefaultSubscription()
+                                         : _storageClient.GetSubscriptions().Single(s => s.Data.SubscriptionId == _storageSubscriptionId);
                     ResourceGroupCollection allResourceGroups = _storageSubscription.GetResourceGroups();
 
                     ArmOperation<ResourceGroupResource> createResourceGroupOperation = allResourceGroups.CreateOrUpdate(WaitUntil.Completed,
@@ -110,9 +121,9 @@ namespace CloudResourceLib
                                                                                                                             Tags =
                                                                                                                             {
                                                                                                                                 { "ClientId", clientId.ToString() },
-                                                                                                                                // TODO more
+                                                                                                                                // TODO more ?
                                                                                                                             },
-                                                                                                                            // ManagedBy = ???,
+                                                                                                                            // other properties? e.g. ManagedBy = 
                                                                                                                         });
                     _storageResourceGroup = createResourceGroupOperation.WaitForCompletion();
 
@@ -123,6 +134,7 @@ namespace CloudResourceLib
                     StorageAccountCreateOrUpdateContent creationParams = new StorageAccountCreateOrUpdateContent(sku, kind, _resourceLocation) 
                         {
                             MinimumTlsVersion = StorageMinimumTlsVersion.Tls1_2,
+                            
                             // TODO Set any more properties here?
                         };
                     ArmOperation<StorageAccountResource> storageAccountCreateOperation = storageAccountCollection.CreateOrUpdate(WaitUntil.Completed, StorageAccountName(clientId), creationParams);
@@ -133,22 +145,31 @@ namespace CloudResourceLib
             }
         }
 
-        /// <summary>
-        /// If invoked with multiple combined CredentialScope flag values, will only validate for one of them
-        /// </summary>
         private static Action<CredentialScope> AssertValid = scope =>
         {
-            ArmClient armClient = scope switch
+            foreach (CredentialScope scopeEnumVal in Enum.GetValues<CredentialScope>().Where(s => (scope & s) != 0))
             {
-                var s when (s & CredentialScope.ContainerInstance) == CredentialScope.ContainerInstance => _containerInstanceClient,
-                var s when (s & CredentialScope.ContainerRegistry) == CredentialScope.ContainerRegistry => _containerRegistryClient,
-                var s when (s & CredentialScope.Storage) == CredentialScope.Storage => _storageClient,
-                _ => throw new NotImplementedException($"Attempt to assert valid client for unsupported CredentialScope value {scope}")
-            };
+                ArmClient armClient = null;
+                switch (scopeEnumVal)
+                {
+                    case CredentialScope.ContainerInstance:
+                        armClient = _containerInstanceClient;
+                        break;
+                    case CredentialScope.ContainerRegistry:
+                        armClient = _containerRegistryClient;
+                        break;
+                    case CredentialScope.Storage:
+                        armClient = _storageClient;
+                        break;
+                    default:    // scopeEnumVal could consist of combined bitflags
+                        CredentialScope debugThis = scopeEnumVal;
+                        continue;
+                };
 
-            if (armClient is null)
-            {
-                throw new CredentialUnavailableException($"{scope} credential not initialized");
+                if (armClient is null)
+                {
+                    throw new CredentialUnavailableException($"{scope} credential not initialized");
+                }
             }
         };
 
@@ -203,6 +224,7 @@ namespace CloudResourceLib
                 if ((credential.Scope & CredentialScope.Storage) == CredentialScope.Storage)
                 {
                     _storageClient = new ArmClient(new ClientSecretCredential(credential.TenantId, credential.ClientId, credential.ClientSecret));
+                    _storageSubscriptionId = credential.SubscriptionId;
                 }
             }
         }

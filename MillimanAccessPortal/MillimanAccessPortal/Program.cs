@@ -113,19 +113,22 @@ namespace MillimanAccessPortal
                     #endregion
 
                     #region Initialize cloud resources library
-                    AzureClientCredential credential1 = AzureClientCredential.NewInstance(
+                    AzureClientCredential storageCredentials = AzureClientCredential.NewInstance(
                         CredentialScope.ContainerInstance | CredentialScope.Storage,
                         Configuration.GetValue<string>("AciTenantId"),
                         Configuration.GetValue<string>("AciClientId"),
-                        Configuration.GetValue<string>("AciClientSecret"));
+                        Configuration.GetValue<string>("AciClientSecret"),
+                        Configuration.GetValue<string>("AzureClientResourcesSubscriptionId"));
 
-                    AzureClientCredential containerRegistryCredential = AzureClientCredential.NewInstance(
-                        CredentialScope.ContainerRegistry,
-                        Configuration.GetValue<string>("ContainerRegistryTenantId"),
-                        Configuration.GetValue<string>("ContainerRegistryClientId"),
-                        Configuration.GetValue<string>("ContainerRegistryClientSecret"));
+                    AzureResourceApi.InitClients(new[] { storageCredentials }, Configuration.GetValue<string>("AzureResourceLocation"));
 
-                    AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential }, "EastUs");
+                    //AzureClientCredential containerRegistryCredential = AzureClientCredential.NewInstance(
+                    //    CredentialScope.ContainerRegistry,
+                    //    Configuration.GetValue<string>("ContainerRegistryTenantId"),  // No such setting, this instance will be null
+                    //    Configuration.GetValue<string>("ContainerRegistryClientId"),
+                    //    Configuration.GetValue<string>("ContainerRegistryClientSecret"));
+
+                    //AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential }, Configuration.GetValue<string>("AzureResourceLocation")));
                     #endregion
                     #endregion
 
