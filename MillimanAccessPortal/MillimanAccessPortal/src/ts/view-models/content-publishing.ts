@@ -1,5 +1,6 @@
 import { ContainerSharePublicationInfo, ContentItemDetail } from '../react/models';
 import { Guid } from '../react/shared-components/interfaces';
+import { Dict } from '../react/shared-components/redux/store';
 
 export interface Nestable {
   id: Guid;
@@ -228,6 +229,10 @@ export interface ContainerizedAppTypeSpecificMetadata {
   cpuCores: string;
   ram: string;
   dataPersistenceEnabled: string;
+  fileShares: Dict<ShareFileChanges>;
+}
+export interface ShareFileChanges {
+  replacedFiles: string[];
 }
 export interface SelectionGroupSummary {
   id: Guid;
