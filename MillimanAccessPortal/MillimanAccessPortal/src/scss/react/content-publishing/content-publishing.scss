@@ -109,8 +109,16 @@
             font-weight: bold;
 
             &.file-name {
-                width: 10em;
+                width: 12em;
             }
+
+            &.status {
+                width: 7em;
+            }
+        }
+
+        tr.added {
+            background-color: rgba($green, .3);
         }
 
         tr.overwritten {
