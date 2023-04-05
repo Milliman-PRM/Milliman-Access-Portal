@@ -2,9 +2,12 @@
 import * as React from 'react';
 
 import { ShareFileChanges } from '../../view-models/content-publishing';
+import { ActionIcon } from '../shared-components/action-icon';
+import { Guid } from '../shared-components/interfaces';
 import { Dict } from '../shared-components/redux/store';
 
 interface FileShareDiffsProps {
+  contentItemId: Guid;
   fileShares: Dict<ShareFileChanges>;
 }
 
@@ -16,11 +19,11 @@ interface FileChangeWithStatus {
 export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
 
   public render() {
-    const { fileShares } = this.props;
+    const { contentItemId, fileShares } = this.props;
 
-    const fileDiffs = Object.keys(fileShares).map((value, key) => (
+    const fileDiffs = Object.keys(fileShares).map((share, key) => (
       <div key={key}>
-        {this.renderOverwrittenFiles(value, fileShares[value])}
+        {this.renderOverwrittenFiles(contentItemId, share, fileShares[share])}
       </div>
     ));
 
@@ -37,7 +40,7 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
     ));
   }
 
-  private renderOverwrittenFiles(_shareName: string, shareChanges: ShareFileChanges) {
+  private renderOverwrittenFiles(contentItemId: Guid, shareName: string, shareChanges: ShareFileChanges) {
     const sortedFileChanges = _.sortBy([
       ...this.mapValuesToStatusValues(shareChanges.newlyAddedShareFiles, 'Added'),
       ...this.mapValuesToStatusValues(shareChanges.replacedShareFiles, 'Overwritten'),
@@ -56,7 +59,7 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
         {
           sortedFileChanges && sortedFileChanges.length > 0 ? (
             <>
-              <h4>The following changes will be made to the persisted dataset:</h4>
+              <h4>The following changes will be made to the data in production:</h4>
               <table>
                 <thead>
                   <tr>
@@ -75,6 +78,25 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
                   ))}
                 </tbody>
               </table>
+              <h5>
+                Once these changes have been published, you will not be able to retriever prior data.
+                Download existing data below:
+              </h5>
+              <a
+                href={
+                  `./ContentPublishing/DownloadLiveContainerizedAppPersistentData?contentItemId=
+                                     ${contentItemId}&userShareName=${shareName}`
+                }
+                download={true}
+              >
+                <button
+                  className="blue-button"
+                  onClick={null}
+                >
+                  <ActionIcon label="Download live data" icon="download" />
+                  Download data from production
+                </button>
+              </a>
             </>
           ) : (
             <span className="no-values">No files overwritten</span>

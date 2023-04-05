@@ -1988,7 +1988,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           checkboxSelectedValue={elementsToConfirm.containerPersistedDatachanges}
           checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
         >
-          <FileShareDiffs fileShares={goLiveSummary.typeSpecificMetadata.fileShares} />
+          <FileShareDiffs
+            contentItemId={rootContentItemId}
+            fileShares={goLiveSummary.typeSpecificMetadata.fileShares}
+          />
         </GoLiveSection>
       );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
