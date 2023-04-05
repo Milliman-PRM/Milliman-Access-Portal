@@ -401,6 +401,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             {
                                 bool replacedFileListFound = containerPubTypeSpecificProps.UntouchedShareFiles.TryGetValue(share.UserShareName, out untouchedFiles);
                             }
+                            List<string> removedFiles = default;
+                            if (containerPubTypeSpecificProps?.RemovedShareFiles is not null)
+                            {
+                                bool replacedFileListFound = containerPubTypeSpecificProps.RemovedShareFiles.TryGetValue(share.UserShareName, out removedFiles);
+                            }
 
                             // TODO calculate other share details here
 
@@ -409,6 +414,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 newlyAddedShareFiles = newFiles,
                                 replacedShareFiles = replacedFiles,
                                 untouchedShareFiles = untouchedFiles,
+                                removedShareFiles = removedFiles,
                                 // TODO include other share details here
                             };
 

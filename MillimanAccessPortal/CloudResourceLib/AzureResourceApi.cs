@@ -406,6 +406,7 @@ namespace CloudResourceLib
             List<string> overwrittenFiles = new List<string>();
             List<string> newFiles = new List<string>();
             List<string> nonOverwrittenFiles = GetAllFileShareItemNames(shareName, "/");
+            List<string> removedFiles = new List<string>();
 
             if (!File.Exists(fileFullPath))
             {
@@ -625,7 +626,7 @@ namespace CloudResourceLib
 
             foreach (ShareFileItem f in startDirectoryClient.GetFilesAndDirectories())
             {
-                var fileItemPath = Path.Combine(directoryName, f.Name);
+                var fileItemPath = (directoryName.Equals("/") ? directoryName : directoryName + "/") + f.Name;
 
                 if (f.IsDirectory)
                 {

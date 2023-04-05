@@ -1983,7 +1983,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       goLiveSummary.typeSpecificMetadata.fileShares && (
         <GoLiveSection
           title="Container Persisted Data"
-          checkboxLabel="Changes made to the existing persisted dataset are as expected"
+          checkboxLabel="Changes made to the persisted dataset are as expected"
           checkboxTarget="containerPersistedDataChanges"
           checkboxSelectedValue={elementsToConfirm.containerPersistedDatachanges}
           checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
