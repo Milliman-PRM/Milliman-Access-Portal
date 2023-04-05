@@ -138,6 +138,8 @@ namespace MapDbContextLib.Models
 
         public List<ContainerSharePublicationInfo> ShareInfo { get; set; } = new List<ContainerSharePublicationInfo>();
         public Dictionary<string,List<string>> ReplacedShareFiles { get; set; } = null;
+        public Dictionary<string, List<string>> NewlyAddedShareFiles { get; set; } = null;
+        public Dictionary<string, List<string>> UntouchedShareFiles { get; set; } = null;
     }
 
     internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>
