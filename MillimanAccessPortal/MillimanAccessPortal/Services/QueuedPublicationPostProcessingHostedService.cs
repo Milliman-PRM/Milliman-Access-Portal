@@ -437,13 +437,23 @@ namespace MillimanAccessPortal.Services
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{liveShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-                                    var replacedFiles = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
+                                    var fileShareChanges = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
 
                                     if (containerizedAppPubProperties.ReplacedShareFiles is null)
                                     {
                                         containerizedAppPubProperties.ReplacedShareFiles = new Dictionary<string, List<string>> { };
                                     }
-                                    containerizedAppPubProperties.ReplacedShareFiles.Add(liveShareInfo.UserShareName, replacedFiles);
+                                    if (containerizedAppPubProperties.NewlyAddedShareFiles is null)
+                                    {
+                                        containerizedAppPubProperties.NewlyAddedShareFiles = new Dictionary<string, List<string>> { };
+                                    }
+                                    if (containerizedAppPubProperties.UntouchedShareFiles is null)
+                                    {
+                                        containerizedAppPubProperties.UntouchedShareFiles = new Dictionary<string, List<string>> { };
+                                    }
+                                    containerizedAppPubProperties.ReplacedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.Item1);
+                                    containerizedAppPubProperties.NewlyAddedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.Item2);
+                                    containerizedAppPubProperties.UntouchedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.Item3);
                                     thisPubRequest.TypeSpecificDetail = JsonSerializer.Serialize(containerizedAppPubProperties);
                                     await dbContext.SaveChangesAsync();
                                 }

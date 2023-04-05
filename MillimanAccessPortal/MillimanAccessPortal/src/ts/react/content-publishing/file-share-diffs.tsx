@@ -36,7 +36,7 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
           */
         }
         {
-          overWrittenFiles.length > 0 ? (
+          overWrittenFiles && overWrittenFiles.length > 0 ? (
             <>
               <h4>The following files will be permanently overwritten:</h4>
               <table>

@@ -379,9 +379,11 @@ namespace CloudResourceLib
         /// <param name="overwriteExistingFiles"></param>
         /// <returns>List of full paths of files that were overwritten during extraction</returns>
         /// <exception cref="FileNotFoundException"></exception>
-        public async Task<List<string>> ExtractCompressedFileToShare(string fileFullPath, string shareName, bool overwriteExistingFiles)
+        public async Task<(List<string>, List<string>, List<string>)> ExtractCompressedFileToShare(string fileFullPath, string shareName, bool overwriteExistingFiles)
         {
             List<string> overwrittenFiles = new List<string>();
+            List<string> newFiles = new List<string>();
+            List<string> nonOverwrittenFiles = GetAllFileShareItemNames(shareName, "/");
 
             if (!File.Exists(fileFullPath))
             {
@@ -402,10 +404,15 @@ namespace CloudResourceLib
                             try
                             {
                                 entry.ExtractToFile(tempFileName);
+                                string fullEntryPath = entry.FullName.StartsWith('/') ? entry.FullName : $"/{entry.FullName}";
                                 bool fileOverwritten = await UploadFileToShare(tempFileName, shareName, entry.FullName, overwriteExistingFiles);
                                 if (fileOverwritten)
                                 {
-                                    overwrittenFiles.Add(entry.FullName.StartsWith('/') ? entry.FullName : $"/{entry.FullName}");
+                                    overwrittenFiles.Add(fullEntryPath);
+                                }
+                                else
+                                {
+                                    newFiles.Add(fullEntryPath);
                                 }
                             }
                             finally
@@ -421,7 +428,9 @@ namespace CloudResourceLib
                 throw new ApplicationException($"Unable to extract file named {fileFullPath}, expected *.zip");
             }
 
-            return overwrittenFiles;
+            nonOverwrittenFiles = nonOverwrittenFiles.Where(nof => !overwrittenFiles.Contains(nof)).ToList();
+
+            return (overwrittenFiles, newFiles, nonOverwrittenFiles);
         }
 
         public async Task DownloadAndCompressShareContents(Guid contentItemId, string userShareName, string localDownloadPath, string zipPath)
@@ -549,32 +558,64 @@ namespace CloudResourceLib
         /// <param name="fileShareName"></param>
         /// <param name="directoryName"></param>
         /// <returns></returns>
-        public void ClearFileShareDirectory(string fileShareName, bool recursive, string directoryName = "/")
+        public List<string> ClearFileShareDirectory(string fileShareName, bool recursive, string directoryName = "/")
         {
             var storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
             ShareClient shareClient = new ShareClient(connectionString, fileShareName);
             ShareDirectoryClient startDirectoryClient = shareClient.GetDirectoryClient(directoryName);
+            List<string> removedFiles = new List<string>();
 
             foreach (ShareFileItem f in startDirectoryClient.GetFilesAndDirectories())
             {
+                var fileItemPath = Path.Combine(directoryName, f.Name);
                 if (recursive && f.IsDirectory) 
                 {
-                    ClearFileShareDirectory(fileShareName, recursive, Path.Combine(directoryName, f.Name));
+                    removedFiles.Add(fileItemPath);
+                    removedFiles.AddRange(ClearFileShareDirectory(fileShareName, recursive, fileItemPath));
                     ShareDirectoryClient subClient = startDirectoryClient.GetSubdirectoryClient(f.Name);
                     subClient.DeleteIfExists();
                 }
                 else
                 {
+                    removedFiles.Add(fileItemPath);
                     ShareFileClient fileClient = new ShareFileClient(new Uri(startDirectoryClient.Uri, f.Name));
                     fileClient.DeleteIfExists();
                 }
             }
+
+            return removedFiles;
             
             // TODO Figure out strategy.
             // Strategy #1: Remove directories recursively
             // Strategy #2: Remove File Share completely, then re-create.
             // Strategy #3??: Maybe there's a built in package function to do this...
+        }
+
+        public List<string> GetAllFileShareItemNames(string fileShareName, string directoryName) {
+            var storageAccountKeys = _storageAccount.GetKeys();
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+            ShareDirectoryClient startDirectoryClient = shareClient.GetDirectoryClient(directoryName);
+
+            List<string> fileShareItemNames = new();
+
+
+            foreach (ShareFileItem f in startDirectoryClient.GetFilesAndDirectories())
+            {
+                var fileItemPath = Path.Combine(directoryName, f.Name);
+
+                if (f.IsDirectory)
+                {
+                    fileShareItemNames.AddRange(GetAllFileShareItemNames(fileShareName, fileItemPath.ToString()));
+                }
+                else
+                {
+                    fileShareItemNames.Add(fileItemPath.ToString());
+                }
+            }
+
+            return fileShareItemNames;
         }
 
         /// <summary>
