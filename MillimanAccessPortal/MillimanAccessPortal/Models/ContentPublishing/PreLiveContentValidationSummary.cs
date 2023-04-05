@@ -386,17 +386,29 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
                         foreach (var share in typeSpecificProps.PreviewShareDetails)
                         {
+                            List<string> newFiles = default;
+                            if (containerPubTypeSpecificProps?.NewlyAddedShareFiles is not null)
+                            {
+                                bool replacedFileListFound = containerPubTypeSpecificProps.NewlyAddedShareFiles.TryGetValue(share.UserShareName, out newFiles);
+                            }
                             List<string> replacedFiles = default;
                             if (containerPubTypeSpecificProps?.ReplacedShareFiles is not null)
                             {
                                 bool replacedFileListFound = containerPubTypeSpecificProps.ReplacedShareFiles.TryGetValue(share.UserShareName, out replacedFiles);
+                            }
+                            List<string> untouchedFiles = default;
+                            if (containerPubTypeSpecificProps?.UntouchedShareFiles is not null)
+                            {
+                                bool replacedFileListFound = containerPubTypeSpecificProps.UntouchedShareFiles.TryGetValue(share.UserShareName, out untouchedFiles);
                             }
 
                             // TODO calculate other share details here
 
                             object v = new
                             {
-                                ReplacedFiles = replacedFiles,
+                                newlyAddedShareFiles = newFiles,
+                                replacedShareFiles = replacedFiles,
+                                untouchedShareFiles = untouchedFiles,
                                 // TODO include other share details here
                             };
 

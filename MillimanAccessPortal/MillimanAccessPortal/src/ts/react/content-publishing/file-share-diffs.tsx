@@ -8,6 +8,11 @@ interface FileShareDiffsProps {
   fileShares: Dict<ShareFileChanges>;
 }
 
+interface FileChangeWithStatus {
+  value: string;
+  status: string;
+}
+
 export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
 
   public render() {
@@ -15,7 +20,7 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
 
     const fileDiffs = Object.keys(fileShares).map((value, key) => (
       <div key={key}>
-        {this.renderOverwrittenFiles(value, fileShares[value].replacedFiles)}
+        {this.renderOverwrittenFiles(value, fileShares[value])}
       </div>
     ));
 
@@ -26,7 +31,19 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
     );
   }
 
-  private renderOverwrittenFiles(_shareName: string, overWrittenFiles: string[]) {
+  private mapValuesToStatusValues(fileList: string[], status: string): FileChangeWithStatus[] {
+    return _.map(fileList, (value) => (
+      { value, status }
+    ));
+  }
+
+  private renderOverwrittenFiles(_shareName: string, shareChanges: ShareFileChanges) {
+    const sortedFileChanges = _.sortBy([
+      ...this.mapValuesToStatusValues(shareChanges.newlyAddedShareFiles, 'Added'),
+      ...this.mapValuesToStatusValues(shareChanges.replacedShareFiles, 'Overwritten'),
+      ...this.mapValuesToStatusValues(shareChanges.untouchedShareFiles, 'Unchanged'),
+    ], (f) => f.value);
+
     return (
       <>
         {
@@ -36,21 +53,23 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
           */
         }
         {
-          overWrittenFiles && overWrittenFiles.length > 0 ? (
+          sortedFileChanges && sortedFileChanges.length > 0 ? (
             <>
-              <h4>The following files will be permanently overwritten:</h4>
+              <h4>The following changes will be made to the existing persisted data set:</h4>
               <table>
                 <thead>
                   <tr>
                     <th className="file-name">File name</th>
+                    <th className="status">Status</th>
                     <th className="file-path">Full path</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {overWrittenFiles.map((value) => (
-                    <tr key={value} className="overwritten">
-                      <td>{_.last(value.split('/'))}</td>
-                      <td className="file-path-value">{value}</td>
+                  {sortedFileChanges.map((fileChange) => (
+                    <tr key={fileChange.value} className={fileChange.status.toLowerCase()}>
+                      <td>{_.last(fileChange.value.split('/'))}</td>
+                      <td>{fileChange.status}</td>
+                      <td className="file-path-value">{fileChange.value}</td>
                     </tr>
                   ))}
                 </tbody>

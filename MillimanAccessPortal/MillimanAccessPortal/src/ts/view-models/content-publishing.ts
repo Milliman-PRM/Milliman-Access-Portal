@@ -232,7 +232,9 @@ export interface ContainerizedAppTypeSpecificMetadata {
   fileShares: Dict<ShareFileChanges>;
 }
 export interface ShareFileChanges {
-  replacedFiles: string[];
+  replacedShareFiles: string[];
+  newlyAddedShareFiles: string[];
+  untouchedShareFiles: string[];
 }
 export interface SelectionGroupSummary {
   id: Guid;
