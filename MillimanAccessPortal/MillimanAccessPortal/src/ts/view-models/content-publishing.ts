@@ -235,6 +235,7 @@ export interface ShareFileChanges {
   replacedShareFiles: string[];
   newlyAddedShareFiles: string[];
   untouchedShareFiles: string[];
+  removedShareFiles: string[];
 }
 export interface SelectionGroupSummary {
   id: Guid;

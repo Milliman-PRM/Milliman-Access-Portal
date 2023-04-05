@@ -121,7 +121,7 @@
             background-color: rgba($green, .3);
         }
 
-        tr.overwritten {
+        tr.overwritten, tr.removed {
             background-color: rgba($red, .3);
         }
 

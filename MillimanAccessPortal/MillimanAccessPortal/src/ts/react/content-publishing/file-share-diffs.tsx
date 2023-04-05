@@ -42,6 +42,7 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
       ...this.mapValuesToStatusValues(shareChanges.newlyAddedShareFiles, 'Added'),
       ...this.mapValuesToStatusValues(shareChanges.replacedShareFiles, 'Overwritten'),
       ...this.mapValuesToStatusValues(shareChanges.untouchedShareFiles, 'Unchanged'),
+      ...this.mapValuesToStatusValues(shareChanges.removedShareFiles, 'Removed'),
     ], (f) => f.value);
 
     return (
@@ -55,7 +56,7 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
         {
           sortedFileChanges && sortedFileChanges.length > 0 ? (
             <>
-              <h4>The following changes will be made to the existing persisted data set:</h4>
+              <h4>The following changes will be made to the persisted dataset:</h4>
               <table>
                 <thead>
                   <tr>
