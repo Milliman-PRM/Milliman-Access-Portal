@@ -392,9 +392,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 bool replacedFileListFound = containerPubTypeSpecificProps.NewlyAddedShareFiles.TryGetValue(share.UserShareName, out newFiles);
                             }
                             List<string> replacedFiles = default;
-                            if (containerPubTypeSpecificProps?.ReplacedShareFiles is not null)
+                            if (containerPubTypeSpecificProps?.OverwrittenShareFiles is not null)
                             {
-                                bool replacedFileListFound = containerPubTypeSpecificProps.ReplacedShareFiles.TryGetValue(share.UserShareName, out replacedFiles);
+                                bool replacedFileListFound = containerPubTypeSpecificProps.OverwrittenShareFiles.TryGetValue(share.UserShareName, out replacedFiles);
                             }
                             List<string> untouchedFiles = default;
                             if (containerPubTypeSpecificProps?.UntouchedShareFiles is not null)

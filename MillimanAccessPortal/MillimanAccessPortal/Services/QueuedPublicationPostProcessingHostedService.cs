@@ -439,55 +439,55 @@ namespace MillimanAccessPortal.Services
                                     Action = liveShareInfo.Action 
                                 });
 
-                                List<string> listOfFileShareItemsWithPossibilityOfRemoval = new();
-                                if (newShareOperation != ContainerShareContentsAction.DeletePrevious)
+                                List<string> existingFileShareItemsInPreviousShare = new List<string>();
+                                if (newShareOperation == ContainerShareContentsAction.DeletePrevious)
                                 {
-                                    await cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
+                                    existingFileShareItemsInPreviousShare = cloudApi.GetAllFileShareItemNames(liveShareInfo.AzureShareName);
                                 }
                                 else
                                 {
-                                    listOfFileShareItemsWithPossibilityOfRemoval = cloudApi.GetAllFileShareItemNames(liveShareInfo.AzureShareName, "/");
+                                    await cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
                                 }
-
+                                
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{liveShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-                                    var fileShareChanges = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
+                                    AzureFileShareChanges fileShareChanges = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath,
+                                                                                                                         newPreviewAzureShareName,
+                                                                                                                         true,
+                                                                                                                         newShareOperation,
+                                                                                                                         newShareOperation == ContainerShareContentsAction.DeletePrevious ?
+                                                                                                                           existingFileShareItemsInPreviousShare :
+                                                                                                                           null
+                                                                                                                        );
 
-                                    if (containerizedAppPubProperties.ReplacedShareFiles is null)
-                                    {
-                                        containerizedAppPubProperties.ReplacedShareFiles = new Dictionary<string, List<string>> { };
-                                    }
-                                    if (containerizedAppPubProperties.NewlyAddedShareFiles is null)
-                                    {
-                                        containerizedAppPubProperties.NewlyAddedShareFiles = new Dictionary<string, List<string>> { };
-                                    }
-                                    if (containerizedAppPubProperties.UntouchedShareFiles is null)
-                                    {
-                                        containerizedAppPubProperties.UntouchedShareFiles = new Dictionary<string, List<string>> { };
-                                    }
-                                    if (containerizedAppPubProperties.RemovedShareFiles is null)
-                                    {
-                                        containerizedAppPubProperties.RemovedShareFiles = new Dictionary<string, List<string>> { };
-                                    }
 
+                                    containerizedAppPubProperties.OverwrittenShareFiles = containerizedAppPubProperties.OverwrittenShareFiles ?? new Dictionary<string, List<string>> { };
+                                    containerizedAppPubProperties.NewlyAddedShareFiles = containerizedAppPubProperties.NewlyAddedShareFiles ?? new Dictionary<string, List<string>> { };
+                                    containerizedAppPubProperties.UntouchedShareFiles = containerizedAppPubProperties.UntouchedShareFiles ?? new Dictionary<string, List<string>> { };
+                                    containerizedAppPubProperties.RemovedShareFiles = containerizedAppPubProperties.RemovedShareFiles ?? new Dictionary<string, List<string>> { };
+
+                                    containerizedAppPubProperties.OverwrittenShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.overwrittenFiles);
+                                    containerizedAppPubProperties.NewlyAddedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.newFiles);
+                                    containerizedAppPubProperties.UntouchedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.untouchedFiles);
+                                    containerizedAppPubProperties.RemovedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.removedFiles);
+
+                                    /*
                                     if (newShareOperation == ContainerShareContentsAction.DeletePrevious)
                                     {
-                                        var overlap = fileShareChanges.Item2.Where(f => listOfFileShareItemsWithPossibilityOfRemoval.Contains(f)).ToList();
-                                        containerizedAppPubProperties.ReplacedShareFiles.Add(liveShareInfo.UserShareName, overlap);
+                                        // In this instance, the original cloud share has not been duplicated, so the list will not be representative of what is overwritten.
+                                        // To solve this, we take the list of 
+                                        var overwrittenFileShareItems = fileShareChanges.newFiles.Where(f => existingFileShareItemsInPreviousShare.Contains(f)).ToList();
+                                        containerizedAppPubProperties.ReplacedShareFiles.Add(liveShareInfo.UserShareName, overwrittenFileShareItems);
 
-                                        // Remove contents of overlap from fileShareChanges.Item2
-                                        containerizedAppPubProperties.NewlyAddedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.Item2.Except(overlap).ToList());
-
-                                        // Remove contents of overlap from listOfFileShareItemsWithPossibilityOfRemoval
-                                        containerizedAppPubProperties.RemovedShareFiles.Add(liveShareInfo.UserShareName, listOfFileShareItemsWithPossibilityOfRemoval.Except(overlap).ToList());
+                                        // Remove overlapping 'overwritten' results from both lists of new files and removed files for the share.
+                                        containerizedAppPubProperties.NewlyAddedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.newFiles.Except(overwrittenFileShareItems).ToList());
+                                        containerizedAppPubProperties.RemovedShareFiles.Add(liveShareInfo.UserShareName, existingFileShareItemsInPreviousShare.Except(overwrittenFileShareItems).ToList());
                                     }
                                     else
                                     {
-                                        containerizedAppPubProperties.ReplacedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.Item1);
-                                        containerizedAppPubProperties.NewlyAddedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.Item2);
-                                        containerizedAppPubProperties.UntouchedShareFiles.Add(liveShareInfo.UserShareName, fileShareChanges.Item3);
                                     }
+                                    */
 
                                     thisPubRequest.TypeSpecificDetail = JsonSerializer.Serialize(containerizedAppPubProperties);
                                     await dbContext.SaveChangesAsync();
@@ -514,13 +514,13 @@ namespace MillimanAccessPortal.Services
                                 ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{newShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
                                 if (zipFile != default)
                                 {
-                                    var fileShareChanges = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
+                                    AzureFileShareChanges fileShareChanges = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
 
                                     if (containerizedAppPubProperties.NewlyAddedShareFiles is null)
                                     {
                                         containerizedAppPubProperties.NewlyAddedShareFiles = new Dictionary<string, List<string>> { };
                                     }
-                                    containerizedAppPubProperties.NewlyAddedShareFiles.Add(newShareInfo.UserShareName, fileShareChanges.Item2);
+                                    containerizedAppPubProperties.NewlyAddedShareFiles.Add(newShareInfo.UserShareName, fileShareChanges.newFiles);
                                     thisPubRequest.TypeSpecificDetail = JsonSerializer.Serialize(containerizedAppPubProperties);
                                     await dbContext.SaveChangesAsync();
                                 }

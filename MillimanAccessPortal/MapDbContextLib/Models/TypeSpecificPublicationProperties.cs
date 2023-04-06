@@ -137,7 +137,7 @@ namespace MapDbContextLib.Models
         public string TimeZoneId { get; set; }
 
         public List<ContainerSharePublicationInfo> ShareInfo { get; set; } = new List<ContainerSharePublicationInfo>();
-        public Dictionary<string, List<string>> ReplacedShareFiles { get; set; } = null;
+        public Dictionary<string, List<string>> OverwrittenShareFiles { get; set; } = null;
         public Dictionary<string, List<string>> NewlyAddedShareFiles { get; set; } = null;
         public Dictionary<string, List<string>> UntouchedShareFiles { get; set; } = null;
         public Dictionary<string, List<string>> RemovedShareFiles { get; set; } = null;

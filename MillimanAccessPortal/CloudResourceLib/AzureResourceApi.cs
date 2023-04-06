@@ -16,6 +16,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Threading;
+using MapDbContextLib.Models;
 
 namespace CloudResourceLib
 {
@@ -379,12 +380,10 @@ namespace CloudResourceLib
         /// <param name="overwriteExistingFiles"></param>
         /// <returns>List of full paths of files that were overwritten during extraction</returns>
         /// <exception cref="FileNotFoundException"></exception>
-        public async Task<(List<string>, List<string>, List<string>)> ExtractCompressedFileToShare(string fileFullPath, string shareName, bool overwriteExistingFiles)
+        public async Task<AzureFileShareChanges> ExtractCompressedFileToShare(string fileFullPath, string shareName, bool overwriteExistingFiles, ContainerShareContentsAction action = ContainerShareContentsAction.OverwritePrevious, List<string> existingFiles = null)
         {
-            List<string> overwrittenFiles = new List<string>();
-            List<string> newFiles = new List<string>();
-            List<string> nonOverwrittenFiles = GetAllFileShareItemNames(shareName, "/");
-            List<string> removedFiles = new List<string>();
+            List<string> existingFilesInShare = existingFiles ?? GetAllFileShareItemNames(shareName);
+            var newFileShareChanges = new AzureFileShareChanges();
 
             if (!File.Exists(fileFullPath))
             {
@@ -407,13 +406,13 @@ namespace CloudResourceLib
                                 entry.ExtractToFile(tempFileName);
                                 string fullEntryPath = entry.FullName.StartsWith('/') ? entry.FullName : $"/{entry.FullName}";
                                 bool fileOverwritten = await UploadFileToShare(tempFileName, shareName, entry.FullName, overwriteExistingFiles);
-                                if (fileOverwritten)
+                                if (fileOverwritten || existingFilesInShare.Contains(fullEntryPath))
                                 {
-                                    overwrittenFiles.Add(fullEntryPath);
+                                    newFileShareChanges.overwrittenFiles.Add(fullEntryPath);
                                 }
                                 else
                                 {
-                                    newFiles.Add(fullEntryPath);
+                                    newFileShareChanges.newFiles.Add(fullEntryPath);
                                 }
                             }
                             finally
@@ -429,9 +428,14 @@ namespace CloudResourceLib
                 throw new ApplicationException($"Unable to extract file named {fileFullPath}, expected *.zip");
             }
 
-            nonOverwrittenFiles = nonOverwrittenFiles.Where(nof => !overwrittenFiles.Contains(nof)).ToList();
+            if (action == ContainerShareContentsAction.OverwritePrevious) {
+                newFileShareChanges.untouchedFiles.AddRange(existingFilesInShare.Except(newFileShareChanges.overwrittenFiles).ToList());
+            }
+            if (action == ContainerShareContentsAction.DeletePrevious) {
+                newFileShareChanges.removedFiles.AddRange(existingFilesInShare.Except(newFileShareChanges.overwrittenFiles).ToList());
+            }
 
-            return (overwrittenFiles, newFiles, nonOverwrittenFiles);
+            return newFileShareChanges;
         }
 
         public async Task DownloadAndCompressShareContents(Guid contentItemId, string userShareName, string localDownloadPath, string zipPath)
@@ -593,7 +597,7 @@ namespace CloudResourceLib
             // Strategy #3??: Maybe there's a built in package function to do this...
         }
 
-        public List<string> GetAllFileShareItemNames(string fileShareName, string directoryName) {
+        public List<string> GetAllFileShareItemNames(string fileShareName, string directoryName = "/") {
             var storageAccountKeys = _storageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
             ShareClient shareClient = new ShareClient(connectionString, fileShareName);

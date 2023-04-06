@@ -232,7 +232,7 @@ export interface ContainerizedAppTypeSpecificMetadata {
   fileShares: Dict<ShareFileChanges>;
 }
 export interface ShareFileChanges {
-  replacedShareFiles: string[];
+  overwrittenShareFiles: string[];
   newlyAddedShareFiles: string[];
   untouchedShareFiles: string[];
   removedShareFiles: string[];

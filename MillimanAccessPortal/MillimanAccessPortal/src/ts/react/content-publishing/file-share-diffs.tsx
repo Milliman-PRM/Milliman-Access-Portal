@@ -43,7 +43,7 @@ export class FileShareDiffs extends React.Component<FileShareDiffsProps, {}> {
   private renderOverwrittenFiles(contentItemId: Guid, shareName: string, shareChanges: ShareFileChanges) {
     const sortedFileChanges = _.sortBy([
       ...this.mapValuesToStatusValues(shareChanges.newlyAddedShareFiles, 'Added'),
-      ...this.mapValuesToStatusValues(shareChanges.replacedShareFiles, 'Overwritten'),
+      ...this.mapValuesToStatusValues(shareChanges.overwrittenShareFiles, 'Overwritten'),
       ...this.mapValuesToStatusValues(shareChanges.untouchedShareFiles, 'Unchanged'),
       ...this.mapValuesToStatusValues(shareChanges.removedShareFiles, 'Removed'),
     ], (f) => f.value);
