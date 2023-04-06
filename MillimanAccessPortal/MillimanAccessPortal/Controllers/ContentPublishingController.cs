@@ -9,6 +9,7 @@ using AuditLogLib.Models;
 using AuditLogLib.Services;
 using CloudResourceLib;
 using ContainerizedAppLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -898,10 +899,47 @@ namespace MillimanAccessPortal.Controllers
             switch (rootContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
-                    // TODO remove any imported reports from Power BI
+#warning TODO remove any imported preview reports from Power BI
                     break;
+
                 case ContentTypeEnum.ContainerApp:
-                    // TODO remove any containers and images
+                    ContainerizedAppContentItemProperties containerizedAppProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+                    // delete the preview image if there is one
+                    if (string.IsNullOrWhiteSpace(containerizedAppProps.PreviewImageName) && string.IsNullOrWhiteSpace(containerizedAppProps.PreviewImageTag))
+                    {
+                        ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(containerizedAppProps.PreviewImageName);
+                        await api.DeleteTag(containerizedAppProps.PreviewImageTag);
+                        if (!string.IsNullOrWhiteSpace(containerizedAppProps.LiveImageName) && !string.IsNullOrWhiteSpace(containerizedAppProps.LiveImageTag))
+                        {
+                            await api.DeleteRepository();
+                        }
+                    }
+
+                    // Delete any preview containers (before removing shares that they have mounted)
+                    {
+                        ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(containerizedAppProps.PreviewImageName);
+
+                        string DatabaseUniqueId = _dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value;
+                        List<ContainerGroup_GetResponseModel> previewContainerGroups = (await api.ListContainerGroupsInResourceGroup())
+                                                                                                 .Where(cg => cg.Tags.ContainsKey("database_id")
+                                                                                                           && cg.Tags["database_id"].Equals(DatabaseUniqueId)
+                                                                                                           && cg.Tags.ContainsKey("publicationRequestId")
+                                                                                                           && cg.Name.Equals(contentPublicationRequest.Id.ToString()))
+                                                                                                 .ToList();
+                        previewContainerGroups.ForEach(async cg => await api.DeleteContainerGroup(cg.Name));
+                    }
+
+                    // Delete any preview shares, if any
+                    if (containerizedAppProps.PreviewShareDetails is not null && containerizedAppProps.PreviewShareDetails.Any())
+                    {
+                        AzureResourceApi api = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+                        foreach (var shareInfo in  containerizedAppProps.PreviewShareDetails)
+                        {
+                            List<string> shareNames = api.GetExistingShareNamesForContent(rootContentItemId, shareInfo.UserShareName, true);
+                            shareNames.ForEach(async sn => await api.RemoveFileShareIfExistsAsync(sn));
+                        }
+                    }
                     break;
 
                 case ContentTypeEnum.Html:
