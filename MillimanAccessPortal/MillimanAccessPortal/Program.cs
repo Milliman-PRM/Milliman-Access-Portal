@@ -236,7 +236,7 @@ namespace MillimanAccessPortal
                     case "AZURE-PROD":
                     case "AZURE-DEVTEST":
                         // These environments are in Azure Web Apps and don't require certificates to access the Key Vault
-                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: false, reloadOnChange: true);
                         var azureBuiltConfig = configBuilder.Build();
 
                         var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
