@@ -58,6 +58,12 @@ namespace MapDbContextLib.Context
         Error = 90,
     }
 
+    public enum PublicationErrorReason
+    {
+        [Display(Description = "the container image file may be invalid, please check that the format and layers are correct")]
+        ContainerImagePushFailed,
+    }
+
     public static class PublicationStatusExtensions
     {
         public static List<PublicationStatus> CancelOnlyAfterLastOfStatusList { get; } = new List<PublicationStatus>

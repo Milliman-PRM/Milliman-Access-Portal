@@ -95,6 +95,15 @@ namespace MillimanAccessPortal.Services
                             var newOutcome = thisPubRequest.OutcomeMetadataObj;
                             newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
                             newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+
+                            #region Add end user visible error details (appears in the red content item banner)
+                            if (kvpWithException.Value.Exception.InnerException.Data.Contains("PublicationErrorReason"))
+                            {
+                                PublicationErrorReason reason = (PublicationErrorReason)kvpWithException.Value.Exception.InnerException.Data["PublicationErrorReason"];
+                                newOutcome.UserMessage += $"; {reason.GetDisplayDescriptionString()}";
+                            }
+                            #endregion
+
                             newOutcome.SupportMessage = kvpWithException.Value.Exception.Message;
                             thisPubRequest.OutcomeMetadataObj = newOutcome;
 
@@ -389,9 +398,13 @@ namespace MillimanAccessPortal.Services
                             }
                             catch (Exception ex)
                             {
-                                Log.Error(ex, $"Failed to push container image to ACR");
+                                string msg = $"Failed to push container image to ACR";
+                                Log.Error(ex, msg);
                                 File.Delete(newMasterFile.FullPath);
-                                throw;
+
+                                var exception = new ApplicationException(msg);
+                                exception.Data.Add("PublicationErrorReason", PublicationErrorReason.ContainerImagePushFailed);
+                                throw exception;
                             }
                             #endregion
 
