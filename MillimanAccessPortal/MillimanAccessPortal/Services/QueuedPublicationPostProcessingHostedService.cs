@@ -95,10 +95,15 @@ namespace MillimanAccessPortal.Services
                             var newOutcome = thisPubRequest.OutcomeMetadataObj;
                             newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
                             newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
-                            if (kvpWithException.Value.Exception.InnerException.Message == "Failed to push container image to ACR")
+
+                            #region Add end user visible error details (appears in the red content item banner)
+                            if (kvpWithException.Value.Exception.InnerException.Data.Contains("PublicationErrorReason"))
                             {
-                                newOutcome.UserMessage += ". The container image may be busted, please check that the format and layers are all correct.";
+                                PublicationErrorReason reason = (PublicationErrorReason)kvpWithException.Value.Exception.InnerException.Data["PublicationErrorReason"];
+                                newOutcome.UserMessage += $"; {reason.GetDisplayDescriptionString()}";
                             }
+                            #endregion
+
                             newOutcome.SupportMessage = kvpWithException.Value.Exception.Message;
                             thisPubRequest.OutcomeMetadataObj = newOutcome;
 
@@ -393,9 +398,13 @@ namespace MillimanAccessPortal.Services
                             }
                             catch (Exception ex)
                             {
-                                Log.Error(ex, $"Failed to push container image to ACR");
+                                string msg = $"Failed to push container image to ACR";
+                                Log.Error(ex, msg);
                                 File.Delete(newMasterFile.FullPath);
-                                throw new Exception("Failed to push container image to ACR");
+
+                                var exception = new ApplicationException(msg);
+                                exception.Data.Add("PublicationErrorReason", PublicationErrorReason.ContainerImagePushFailed);
+                                throw exception;
                             }
                             #endregion
 
