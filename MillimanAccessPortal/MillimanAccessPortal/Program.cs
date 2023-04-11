@@ -115,10 +115,10 @@ namespace MillimanAccessPortal
                     #region Initialize cloud resources library
                     AzureClientCredential storageCredentials = AzureClientCredential.NewInstance(
                         CredentialScope.ContainerInstance | CredentialScope.Storage,
-                        Configuration.GetValue<string>("AciTenantId"),
-                        Configuration.GetValue<string>("AciClientId"),
-                        Configuration.GetValue<string>("AciClientSecret"),
-                        Configuration.GetValue<string>("AzureClientResourcesSubscriptionId"));
+                        Configuration.GetValue<string>("MapManagedAzureResourcesTenantId"),
+                        Configuration.GetValue<string>("MapManagedAzureResourcesClientId"),
+                        Configuration.GetValue<string>("MapManagedAzureResourcesClientSecret"),
+                        Configuration.GetValue<string>("MapManagedAzureResourcesSubscriptionId"));
 
                     AzureResourceApi.InitClients(new[] { storageCredentials }, Configuration.GetValue<string>("AzureResourceLocation"));
 

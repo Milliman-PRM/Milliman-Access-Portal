@@ -466,10 +466,10 @@ namespace ContainerizedAppLib
             MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
                                                                     await Config.ContainerInstanceTokenEndpoint
                                                                     .PostMultipartAsync(mp => mp
-                                                                        .AddString("grant_type", Config.AciGrantType)
+                                                                        .AddString("grant_type", Config.MapManagedAzureResourcesGrantType)
                                                                         .AddString("scope", "https://management.azure.com/.default")
-                                                                        .AddString("client_id", Config.AciClientId)
-                                                                        .AddString("client_secret", Config.AciClientSecret)
+                                                                        .AddString("client_id", Config.MapManagedAzureResourcesClientId)
+                                                                        .AddString("client_secret", Config.MapManagedAzureResourcesClientSecret)
                                                                     )
                                                                     .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
 
@@ -660,7 +660,7 @@ namespace ContainerizedAppLib
                                                       Guid? clientId = null,
                                                       params ushort[] containerPorts)
         {
-            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -826,7 +826,7 @@ namespace ContainerizedAppLib
         /// <returns>A response model containing details of the current Container Group.</returns>
         public async Task<ContainerGroup_GetResponseModel> GetContainerGroupDetails(string containerGroupName)
         {
-            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             IFlurlResponse response = await getContainerGroupEndpoint
                                                 .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
@@ -852,7 +852,7 @@ namespace ContainerizedAppLib
         /// <returns>Container logs in string format.</returns>
         public async Task<string> GetContainerLogs(string containerGroupName, string containerName)
         {
-            string getContainerLogEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version={Config.AciApiVersion}";
+            string getContainerLogEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -889,7 +889,7 @@ namespace ContainerizedAppLib
         /// <returns>List of Container Groups.</returns>
         public async Task<List<ContainerGroup_GetResponseModel>> ListContainerGroupsInResourceGroup()
         {
-            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version={Config.AciApiVersion}";
+            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -914,7 +914,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> StopContainerInstance(string containerGroupName)
         {
-            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version={Config.AciApiVersion}";
+            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -938,7 +938,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> RestartContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version={Config.AciApiVersion}";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -962,7 +962,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> DeleteContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -982,7 +982,7 @@ namespace ContainerizedAppLib
 
         private async Task<ResourceGroup_GetResponseModel> GetResourceGroupDetails()
         {
-            string queryResourceGroupDetailsEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourcegroups/{Config.AciResourceGroupName}?api-version=2021-04-01";
+            string queryResourceGroupDetailsEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourcegroups/{Config.MapClientResourcesResourceGroupName}?api-version=2021-04-01";
 
             try
             {
