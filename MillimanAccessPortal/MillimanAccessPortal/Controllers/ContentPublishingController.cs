@@ -7,7 +7,9 @@
 using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using CloudResourceLib;
 using ContainerizedAppLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -536,7 +538,26 @@ namespace MillimanAccessPortal.Controllers
                     break;
 
                 case ContentTypeEnum.ContainerApp:
-#warning TODO: Implement the removal of image/container related resources here
+                    ContainerizedAppContentItemProperties containerizedAppProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                    IEnumerable<string> imagesToDelete = new[] { containerizedAppProps.LiveImageName, containerizedAppProps.PreviewImageName }.Where(i => i is not null).Distinct();
+
+                    foreach (string imageToDelete in imagesToDelete)
+                    {
+                        ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(imageToDelete);
+                        await api.DeleteRepository();
+                    }
+                    // Any running container instances will be quickly handled by the maintenance thread
+
+                    // Delete any file shares
+                    AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+                    foreach (var shareInfo in containerizedAppProps.LiveShareDetails)
+                    {
+                        List<string> names = azureResourceApi.GetExistingShareNamesForContent(rootContentItem.Id, shareInfo.UserShareName, null);
+                        foreach (string name in names)
+                        {
+                            await azureResourceApi.RemoveFileShareIfExistsAsync(name);
+                        }
+                    }
                     break;
 
                 case ContentTypeEnum.Html:
@@ -671,7 +692,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                     
                     ContainerizedAppContentItemProperties liveDetails = (ContainerizedAppContentItemProperties)ContentItem.TypeSpecificDetailObject;
-                    publicationHasPublicationDetailChanges = liveDetails.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails);
+                    publicationHasPublicationDetailChanges = liveDetails?.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails) ?? true;
 
                     break;
             }
@@ -789,6 +810,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             var rootContentItem = await _dbContext.RootContentItem
                                                   .Include(c => c.Client)
+                                                  .Include(c => c.ContentType)
                                                   .SingleOrDefaultAsync(c => c.Id == rootContentItemId);
 
             #region Preliminary validation
@@ -872,6 +894,59 @@ namespace MillimanAccessPortal.Controllers
                 {
                     Directory.Delete(containingFolder);
                 }
+            }
+
+            switch (rootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.PowerBi:
+#warning TODO remove any imported preview reports from Power BI
+                    break;
+
+                case ContentTypeEnum.ContainerApp:
+                    ContainerizedAppContentItemProperties containerizedAppProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+                    // delete the preview image if there is one
+                    if (string.IsNullOrWhiteSpace(containerizedAppProps.PreviewImageName) && string.IsNullOrWhiteSpace(containerizedAppProps.PreviewImageTag))
+                    {
+                        ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(containerizedAppProps.PreviewImageName);
+                        await api.DeleteTag(containerizedAppProps.PreviewImageTag);
+                        if (!string.IsNullOrWhiteSpace(containerizedAppProps.LiveImageName) && !string.IsNullOrWhiteSpace(containerizedAppProps.LiveImageTag))
+                        {
+                            await api.DeleteRepository();
+                        }
+                    }
+
+                    // Delete any preview containers (before removing shares that they have mounted)
+                    {
+                        ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(containerizedAppProps.PreviewImageName);
+
+                        string DatabaseUniqueId = _dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value;
+                        List<ContainerGroup_GetResponseModel> previewContainerGroups = (await api.ListContainerGroupsInResourceGroup())
+                                                                                                 .Where(cg => cg.Tags.ContainsKey("database_id")
+                                                                                                           && cg.Tags["database_id"].Equals(DatabaseUniqueId)
+                                                                                                           && cg.Tags.ContainsKey("publicationRequestId")
+                                                                                                           && cg.Name.Equals(contentPublicationRequest.Id.ToString()))
+                                                                                                 .ToList();
+                        previewContainerGroups.ForEach(async cg => await api.DeleteContainerGroup(cg.Name));
+                    }
+
+                    // Delete any preview shares, if any
+                    if (containerizedAppProps.PreviewShareDetails is not null && containerizedAppProps.PreviewShareDetails.Any())
+                    {
+                        AzureResourceApi api = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+                        foreach (var shareInfo in  containerizedAppProps.PreviewShareDetails)
+                        {
+                            List<string> shareNames = api.GetExistingShareNamesForContent(rootContentItemId, shareInfo.UserShareName, true);
+                            shareNames.ForEach(async sn => await api.RemoveFileShareIfExistsAsync(sn));
+                        }
+                    }
+                    break;
+
+                case ContentTypeEnum.Html:
+                case ContentTypeEnum.Qlikview:
+                case ContentTypeEnum.Pdf:
+                case ContentTypeEnum.FileDownload:
+                    break;
             }
 
             // Delete live ready files (including associated files)
@@ -1230,6 +1305,13 @@ namespace MillimanAccessPortal.Controllers
                                     await containerLibApi.DeleteTag(containerContentProps.PreviewImageTag);
                                 }
 
+                                AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+                                IEnumerable<string> azureShareNames = containerContentProps.PreviewShareDetails.Select(s => s.AzureShareName);
+                                foreach (string azureShareName in azureShareNames)
+                                {
+                                    await azureResourceApi.RemoveFileShareIfExistsAsync(azureShareName);
+                                }
+
                                 containerContentProps.PreviewImageName = null;
                                 containerContentProps.PreviewImageTag = null;
                                 containerContentProps.PreviewContainerInternalPort = 0;
@@ -1321,6 +1403,64 @@ namespace MillimanAccessPortal.Controllers
             var reportModel = await powerBiApi.ExportReportAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, configuredTemporaryExportsDirectory, true);
             return new TemporaryPhysicalFileResult(reportModel.reportFilePath, "application/octet-stream") {
                 FileDownloadName = $"{rootContentItem.ContentName}.pbix" };
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadLiveContainerizedAppPersistentData(Guid contentItemId, string userShareName)
+        {
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
+            if (!authorization.Succeeded)
+            {
+                ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.GetDisplayNameString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.Id);
+                Response.Headers.Add("Warning", "You are not authorized to download this item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem rootContentItem = await _dbContext.RootContentItem
+                                                              .Include(rci => rci.ContentType)
+                                                              .Where(rci => rci.Id == contentItemId)
+                                                              .SingleOrDefaultAsync();
+
+            #region Validation
+            if (rootContentItem == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be found, aborting.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            if (rootContentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} has an invalid ContentType.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            ContainerizedAppContentItemProperties typeSpecificContentItemProperties = (rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties);
+            if (!typeSpecificContentItemProperties.DataPersistenceEnabled)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be downloaded because data persistence is not enabled.");
+                Response.Headers.Add("Warning", "Data persistence is not enabled for this Content Item.");
+                return BadRequest();
+            }
+            #endregion
+
+            string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
+            AzureResourceApi azureResourceApi = new AzureResourceApi(rootContentItem.ClientId, CredentialScope.Storage);
+
+            string tempName = Guid.NewGuid().ToString();
+            string temporaryDownloadPath = Path.Combine(configuredTemporaryExportsDirectory, tempName);
+            string temporaryZipLocation = Path.Combine(configuredTemporaryExportsDirectory, $"{tempName}.zip");
+            await azureResourceApi.DownloadAndCompressShareContents(rootContentItem.Id, userShareName, temporaryDownloadPath, temporaryZipLocation);
+
+            return new TemporaryPhysicalFileResult(temporaryZipLocation, "application/octet-stream")
+            {
+                FileDownloadName = $"{rootContentItem.ContentName}-PersistedData.zip"
+            };
         }
 
         private async Task<RootContentItem> JsonToRootContentItemAsync(JObject jObject)

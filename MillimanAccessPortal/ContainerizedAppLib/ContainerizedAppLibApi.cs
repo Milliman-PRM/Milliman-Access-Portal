@@ -1,7 +1,9 @@
-﻿using ContainerizedAppLib.AzureRestApiModels;
+﻿using CloudResourceLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using Flurl.Http;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -271,7 +273,7 @@ namespace ContainerizedAppLib
 #warning TODO note in publishing user guide that the tar file should use only ASCII encoding in the name fields
 
             string workingFolderName = Path.GetDirectoryName(imageFileFullPath);
-            GlobalFunctions.ExtractFromTar(imageFileFullPath);
+            GlobalFunctions.ExtractCompressedFile(imageFileFullPath);
 
             try
             {
@@ -464,10 +466,10 @@ namespace ContainerizedAppLib
             MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
                                                                     await Config.ContainerInstanceTokenEndpoint
                                                                     .PostMultipartAsync(mp => mp
-                                                                        .AddString("grant_type", Config.AciGrantType)
+                                                                        .AddString("grant_type", Config.MapManagedAzureResourcesGrantType)
                                                                         .AddString("scope", "https://management.azure.com/.default")
-                                                                        .AddString("client_id", Config.AciClientId)
-                                                                        .AddString("client_secret", Config.AciClientSecret)
+                                                                        .AddString("client_id", Config.MapManagedAzureResourcesClientId)
+                                                                        .AddString("client_secret", Config.MapManagedAzureResourcesClientSecret)
                                                                     )
                                                                     .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
 
@@ -509,7 +511,9 @@ namespace ContainerizedAppLib
                                                string vnetId, 
                                                string vnetName,
                                                bool blockUntilStarted,
+                                               List<ContainerSharePublicationInfo> shareInfo = null,
                                                Dictionary<string, string> EnvironmentVariables = null,
+                                               Guid? clientId = null,
                                                params ushort[] containerPorts)
         {
             try
@@ -523,10 +527,12 @@ namespace ContainerizedAppLib
                                                                ipType, 
                                                                cpuCoreCount, 
                                                                memorySizeInGB, 
-                                                               resourceTags, 
+                                                               resourceTags,
+                                                               shareInfo, 
                                                                vnetId, 
                                                                vnetName, 
                                                                EnvironmentVariables,
+                                                               clientId,
                                                                containerPorts);
 
                 if (!createResult)
@@ -634,6 +640,7 @@ namespace ContainerizedAppLib
         /// <param name="cpuCoreCount">The number of CPU cores for the Container Group.</param>
         /// <param name="memorySizeInGB">The amount of RAM in GB for the Container Group.</param>
         /// <param name="resourceTags">The Container Group resource tags.</param>
+        /// <param name="shareNames">Names of Azure file shares to be mounted for this container.</param>
         /// <param name="vnetId">The ID of the virtual network being used.</param>
         /// <param name="vnetName">The name of the virtual network being used.</param>
         /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
@@ -645,13 +652,15 @@ namespace ContainerizedAppLib
                                                       string ipType, 
                                                       int cpuCoreCount, 
                                                       double memorySizeInGB, 
-                                                      ContainerGroupResourceTags resourceTags, 
+                                                      ContainerGroupResourceTags resourceTags,
+                                                      List<ContainerSharePublicationInfo> shareInfo,
                                                       string vnetId = null, 
                                                       string vnetName = null, 
                                                       Dictionary<string, string> EnvironmentVariables = null, 
+                                                      Guid? clientId = null,
                                                       params ushort[] containerPorts)
         {
-            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -685,7 +694,8 @@ namespace ContainerizedAppLib
                                             SecureValue = ipType.Equals("Private", StringComparison.InvariantCultureIgnoreCase)
                                                 ? ev.Value
                                                 : null,
-                                        }).ToList(),
+                                        })
+                                        .ToList(),
                                     }
 ,
                                     Image = containerImageName,
@@ -697,7 +707,10 @@ namespace ContainerizedAppLib
                                             CpuLimit = cpuCoreCount,
                                             MemoryInGB = memorySizeInGB,
                                         }
-                                    }
+                                    },
+                                    VolumeMounts = shareInfo?.Any() ?? false
+                                        ? new List<VolumeMount> ()  // Populated below
+                                        : null
                                 }
                             }
                         },
@@ -728,6 +741,49 @@ namespace ContainerizedAppLib
                     },
                     Tags = resourceTags
                 };
+
+                if (shareInfo?.Any() ?? false && clientId.HasValue)
+                {
+                    AzureResourceApi azureApi = new AzureResourceApi(clientId.Value, CredentialScope.Storage);
+                    StorageAccountInfo storageAccountInfo = azureApi.GetStorageAccountInfo();
+
+                    requestModel.Properties.Volumes = new List<Volume>(shareInfo.Select(s => new Volume 
+                    {
+                        Name = s.UserShareName, 
+                        AzureFile = new AzureFileVolume 
+                        {
+                            ShareName = s.AzureShareName, 
+                            ReadOnly = false,
+                            StorageAccountName = storageAccountInfo.Name,
+                            StorageAccountKey = storageAccountInfo.Keys[0]
+                        } 
+                    }));
+
+                    // Mount each share in the name list to container(s) in the group (currently only one)
+                    requestModel.Properties.Containers.ForEach(c => c.Properties.VolumeMounts.AddRange(shareInfo.Select(s => new VolumeMount 
+                    { 
+                        MountPath = $"/mnt/map-{s.UserShareName}", 
+                        Name = s.UserShareName, 
+                        ReadOnly = false 
+                    })));
+
+                    List<string> mountPaths = shareInfo.Select(n => $"/mnt/map-{n.UserShareName}").ToList();
+                    requestModel.Properties.Containers.ForEach(c => c.Properties.EnvironmentVariables.Add(
+                        shareInfo.Count switch
+                        {
+                            1 => new ContainerProperties.EnvironmentVariable
+                            {
+                                Name = "MAP_DATA_MOUNT_PATH",
+                                Value = mountPaths[0]
+                            },
+                            _ => // throw new ApplicationException("Multiple share mounts are not supported in this version of map")
+                                 new ContainerProperties.EnvironmentVariable
+                            {
+                                Name = "MAP_DATA_MOUNTS_JSON",
+                                Value = System.Text.Json.JsonSerializer.Serialize(shareInfo.Select(s => new { k = s.UserShareName, v = s.AzureShareName }))
+                            }
+                        }));
+                }
 
                 string serializedRequestModel = JsonConvert.SerializeObject(requestModel, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
                 IFlurlResponse response = await createContainerGroupEndpoint
@@ -770,7 +826,7 @@ namespace ContainerizedAppLib
         /// <returns>A response model containing details of the current Container Group.</returns>
         public async Task<ContainerGroup_GetResponseModel> GetContainerGroupDetails(string containerGroupName)
         {
-            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             IFlurlResponse response = await getContainerGroupEndpoint
                                                 .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
@@ -796,7 +852,7 @@ namespace ContainerizedAppLib
         /// <returns>Container logs in string format.</returns>
         public async Task<string> GetContainerLogs(string containerGroupName, string containerName)
         {
-            string getContainerLogEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version={Config.AciApiVersion}";
+            string getContainerLogEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -833,7 +889,7 @@ namespace ContainerizedAppLib
         /// <returns>List of Container Groups.</returns>
         public async Task<List<ContainerGroup_GetResponseModel>> ListContainerGroupsInResourceGroup()
         {
-            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version={Config.AciApiVersion}";
+            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -858,7 +914,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> StopContainerInstance(string containerGroupName)
         {
-            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version={Config.AciApiVersion}";
+            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -882,7 +938,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> RestartContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version={Config.AciApiVersion}";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -906,7 +962,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> DeleteContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourceGroups/{Config.MapClientResourcesResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -926,7 +982,7 @@ namespace ContainerizedAppLib
 
         private async Task<ResourceGroup_GetResponseModel> GetResourceGroupDetails()
         {
-            string queryResourceGroupDetailsEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourcegroups/{Config.AciResourceGroupName}?api-version=2021-04-01";
+            string queryResourceGroupDetailsEndpoint = $"https://management.azure.com/subscriptions/{Config.MapManagedAzureResourcesSubscriptionId}/resourcegroups/{Config.MapClientResourcesResourceGroupName}?api-version=2021-04-01";
 
             try
             {

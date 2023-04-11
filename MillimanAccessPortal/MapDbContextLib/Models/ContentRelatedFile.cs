@@ -9,7 +9,7 @@ namespace MapDbContextLib.Models
     public class ContentRelatedFile : VerifyableFileBase
     {
         /// <summary>
-        /// Standard values: MasterContent, ReducedContent, UserGuide, Thumbnail, ReleaseNotes
+        /// Standard values: MasterContent, ReducedContent, UserGuide, Thumbnail, ReleaseNotes, ContainerPersistedData
         /// </summary>
         public string FilePurpose { get; set; }
         public string FileOriginalName { get; set; }

@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
-    <Version>1.17.8</Version>
+    <Version>1.18.0-dev</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CloudResourceLib\CloudResourceLib.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
+    <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
   </ItemGroup>
 
 </Project>

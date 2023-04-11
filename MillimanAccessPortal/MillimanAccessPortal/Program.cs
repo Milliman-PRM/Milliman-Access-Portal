@@ -7,6 +7,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Models;
+using CloudResourceLib;
 using FileDropLib;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ using Npgsql;
 using Prm.EmailQueue;
 using Prm.SerilogCustomization;
 using Serilog;
+using Serilog.Events;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -63,13 +65,15 @@ namespace MillimanAccessPortal
                     FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
                     NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
                     FileDropOperations.MapDbConnectionString = cxnStrBuilder.ConnectionString;
+                    LogEventLevel minLevel = Enum.GetValues<LogEventLevel>().Where(l => Log.IsEnabled(l)).Min();
 
                     Log.Information($"Process launched:{Environment.NewLine}" +
                                     $"    Product Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                                     $"    Assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                                     $"    Assembly location <{processAssembly.Location}>{Environment.NewLine}" +
                                     $"    Host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
-                                    $"    Using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
+                                    $"    Logging level is <{minLevel}>{Environment.NewLine}" +
+                                    $"    Using MAP database <{cxnStrBuilder.Database}> on host <{cxnStrBuilder.Host}>");
 
                     GlobalFunctions.DomainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.DomainValRegex);
                     GlobalFunctions.EmailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.EmailValRegex);
@@ -106,6 +110,25 @@ namespace MillimanAccessPortal
                         AuditLogConnectionString = auditLogConnectionString,
                         ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
                     };
+                    #endregion
+
+                    #region Initialize cloud resources library
+                    AzureClientCredential storageCredentials = AzureClientCredential.NewInstance(
+                        CredentialScope.ContainerInstance | CredentialScope.Storage,
+                        Configuration.GetValue<string>("MapManagedAzureResourcesTenantId"),
+                        Configuration.GetValue<string>("MapManagedAzureResourcesClientId"),
+                        Configuration.GetValue<string>("MapManagedAzureResourcesClientSecret"),
+                        Configuration.GetValue<string>("MapManagedAzureResourcesSubscriptionId"));
+
+                    AzureResourceApi.InitClients(new[] { storageCredentials }, Configuration.GetValue<string>("AzureResourceLocation"));
+
+                    //AzureClientCredential containerRegistryCredential = AzureClientCredential.NewInstance(
+                    //    CredentialScope.ContainerRegistry,
+                    //    Configuration.GetValue<string>("ContainerRegistryTenantId"),  // No such setting, this instance will be null
+                    //    Configuration.GetValue<string>("ContainerRegistryClientId"),
+                    //    Configuration.GetValue<string>("ContainerRegistryClientSecret"));
+
+                    //AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential }, Configuration.GetValue<string>("AzureResourceLocation")));
                     #endregion
                     #endregion
 
@@ -213,7 +236,7 @@ namespace MillimanAccessPortal
                     case "AZURE-PROD":
                     case "AZURE-DEVTEST":
                         // These environments are in Azure Web Apps and don't require certificates to access the Key Vault
-                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: false, reloadOnChange: true);
                         var azureBuiltConfig = configBuilder.Build();
 
                         var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());

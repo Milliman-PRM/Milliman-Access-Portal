@@ -42,7 +42,8 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "subnetIds")]
         public List<ContainerGroupSubnetId> SubnetIds { get; set; }
 
-        // TODO volumes
+        [JsonProperty(PropertyName = "volumes")]
+        public List<Volume> Volumes { get; set; } = null;
     }
 
     [JsonConverter(typeof(StringEnumConverter))]

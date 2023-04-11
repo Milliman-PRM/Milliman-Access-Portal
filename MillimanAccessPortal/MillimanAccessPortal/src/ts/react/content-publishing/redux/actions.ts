@@ -382,6 +382,8 @@ export interface SetPublishingFormBooleanInputValue {
   | 'fridayChecked'
   | 'saturdayChecked'
   | 'sundayChecked'
+  | 'dataPersistenceEnabled'
+  | 'removeExistingDataWithPublication'
   | 'contentDisclaimerAlwaysShown';
   value: boolean;
 }

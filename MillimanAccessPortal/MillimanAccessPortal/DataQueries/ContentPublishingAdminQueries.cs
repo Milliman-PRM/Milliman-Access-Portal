@@ -175,7 +175,8 @@ namespace MillimanAccessPortal.DataQueries
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,
                 ContentDisclaimerAlwaysShown = rootContentItem.ContentDisclaimerAlwaysShown,
                 IsSuspended = rootContentItem.IsSuspended,
-                IsEditable = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi &&  (rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled),
+                IsEditable = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && (rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled),
+                DataPersistenceEnabled = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp && rootContentItem.TypeSpecificDetailObject is not null && (rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties).DataPersistenceEnabled),
                 TypeSpecificDetailObject = default,
                 TypeSpecificPublicationProperties = default,
             };

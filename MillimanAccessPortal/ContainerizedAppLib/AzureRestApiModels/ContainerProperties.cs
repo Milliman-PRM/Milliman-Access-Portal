@@ -33,10 +33,11 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
             [JsonProperty(PropertyName = "value")]
             public string Value { get; set; }
-
         }
 
-        // TODO volumeMounts
+        [JsonProperty(PropertyName = "volumeMounts")]
+        public List<VolumeMount> VolumeMounts { get; set; } = null;
+
         // TODO readinessProbe
         // TODO livenessProbe
 

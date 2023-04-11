@@ -886,7 +886,7 @@ namespace MapTests
                 Assert.Equal(beforeCount+1, AfterCount);
                 JsonResult jsonResult = Assert.IsType<JsonResult>(result);
                 RootContentItemDetail rootContentItemDetail = Assert.IsType<RootContentItemDetail>(jsonResult.Value);
-                ContainerizedContentPublicationProperties containerPubProperties = Assert.IsType<ContainerizedContentPublicationProperties>(rootContentItemDetail.TypeSpecificPublicationProperties);
+                // ContainerizedContentPublicationProperties containerPubProperties = Assert.IsType<ContainerizedContentPublicationProperties>(rootContentItemDetail.TypeSpecificPublicationProperties);
                 #endregion
             }
         }

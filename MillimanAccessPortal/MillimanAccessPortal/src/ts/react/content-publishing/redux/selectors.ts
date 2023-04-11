@@ -5,8 +5,9 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContentItemPublicationDetail, ContentPublicationRequest,
-  ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
+  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContainerShareContentsAction, ContainerSharePublicationInfo,
+  ContentItemPublicationDetail, ContentPublicationRequest, ContentReductionTask, Guid, RootContentItemWithStats,
+  TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
 
@@ -331,8 +332,9 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
+      const filePurpose = isContainerApp && key === 'ContainerPersistedData' ? key + '-main' : key;
       filesToPublish.push({
-        filePurpose: key,
+        filePurpose,
         fileOriginalName: relatedFiles[key].fileOriginalName,
         fileUploadId: relatedFiles[key].fileUploadId,
       });
@@ -357,7 +359,17 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerInstanceLifetimeScheme:
         pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
+      shareInfo: [],
     };
+
+    if (pendingFormData.typeSpecificDetailObject && pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled) {
+      const newShareInfo: ContainerSharePublicationInfo = {
+        userShareName: 'main',
+        action: pendingFormData.typeSpecificPublicationProperties.removeExistingDataWithPublication ?
+          ContainerShareContentsAction.DeletePrevious : ContainerShareContentsAction.OverwritePrevious,
+      };
+      typeSpecificPublishingDetail.shareInfo.push(newShareInfo);
+    }
 
     if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
       === ContainerInstanceLifetimeSchemeEnum.Custom) {
@@ -474,6 +486,11 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
   }
 
   if (isContainerApp) {
+    contentItemInformation.TypeSpecificDetailObject = {
+      DataPersistenceEnabled: pendingFormData.typeSpecificDetailObject
+        && pendingFormData.typeSpecificDetailObject.dataPersistenceEnabled,
+    };
+
     if (pendingFormData.typeSpecificPublicationProperties) {
       contentItemInformation.typeSpecificPublicationProperties = {
         containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,

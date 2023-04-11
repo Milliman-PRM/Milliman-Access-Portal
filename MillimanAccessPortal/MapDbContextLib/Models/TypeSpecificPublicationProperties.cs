@@ -79,12 +79,12 @@ namespace MapDbContextLib.Models
         Unspecified = 0,
         [Display(Name = "30 minutes")]
         ThirtyMinutes = 1,
-        [Display(Name = "1 hour")]
-        OneHour = 2,
+        [Display(Name = "60 minutes")]
+        SixtyMinutes = 2,
         [Display(Name = "90 minutes")]
         NinetyMinutes = 3,
-        [Display(Name = "2 hours")]
-        TwoHours = 4,
+        [Display(Name = "120 minutes")]
+        OneHundredAndTwentyMinutes = 4,
     }
 
     public enum ContainerInstanceLifetimeSchemeEnum
@@ -97,6 +97,21 @@ namespace MapDbContextLib.Models
         Custom = 2,
     }
 
+    public enum ContainerShareContentsAction
+    {
+        [Display(Name = "Replace All")]
+        DeletePrevious = 0,
+        [Display(Name = "Overwrite Conflicts")]
+        OverwritePrevious = 1,
+    }
+
+    public class ContainerSharePublicationInfo
+    {
+        public string UserShareName { get; set; }
+        public string AzureShareName { get; set; } = string.Empty;
+        public ContainerShareContentsAction Action { get; set; } = ContainerShareContentsAction.DeletePrevious;
+    }
+
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase
     {
         public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
@@ -105,7 +120,7 @@ namespace MapDbContextLib.Models
 
         public ushort ContainerInternalPort { get; set; }
 
-        public ContainerCooldownPeriodEnum CustomCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
+        public ContainerCooldownPeriodEnum CustomCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.SixtyMinutes;
 
         public ContainerInstanceLifetimeSchemeEnum ContainerInstanceLifetimeScheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.AlwaysCold;
         public bool? MondayChecked { get; set; }
@@ -120,6 +135,9 @@ namespace MapDbContextLib.Models
         [JsonConverter(typeof(TimeSpanJsonConverter))]
         public TimeSpan? EndTime { get; set; }
         public string TimeZoneId { get; set; }
+
+        public List<ContainerSharePublicationInfo> ShareInfo { get; set; } = new List<ContainerSharePublicationInfo>();
+        public Dictionary<string,List<string>> ReplacedShareFiles { get; set; } = null;
     }
 
     internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>

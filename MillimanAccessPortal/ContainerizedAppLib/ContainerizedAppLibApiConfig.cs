@@ -15,14 +15,14 @@
         }
         public string ContainerInstanceTokenEndpoint
         {
-            get => $"https://login.microsoftonline.com/{AciTenantId}/oauth2/v2.0/token";
+            get => $"https://login.microsoftonline.com/{MapManagedAzureResourcesTenantId}/oauth2/v2.0/token";
         }
-        public string AciResourceGroupName { get; set; }
-        public string AciClientId { get; set; }
-        public string AciClientSecret { get; set; }
-        public string AciTenantId { get; set; }
-        public string AciSubscriptionId { get; set; }
-        public string AciGrantType { get; set; }
+        public string MapClientResourcesResourceGroupName { get; set; }
+        public string MapManagedAzureResourcesClientId { get; set; }
+        public string MapManagedAzureResourcesClientSecret { get; set; }
+        public string MapManagedAzureResourcesTenantId { get; set; }
+        public string MapManagedAzureResourcesSubscriptionId { get; set; }
+        public string MapManagedAzureResourcesGrantType { get; set; }
         public string AciApiVersion { get; set; } = "2021-09-01";
     }
 }

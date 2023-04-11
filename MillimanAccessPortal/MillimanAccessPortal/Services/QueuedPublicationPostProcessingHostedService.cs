@@ -6,6 +6,7 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using CloudResourceLib;
 using ContainerizedAppLib;
 using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
@@ -13,6 +14,7 @@ using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 //using Microsoft.EntityFrameworkCore.Storage;  // for transaction support
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,9 +28,11 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -376,7 +380,6 @@ namespace MillimanAccessPortal.Services
                         ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                         string repositoryName = contentItem.AcrRepositoryName;
 
-
                         if (newMasterFile is not null)
                         {
                             #region Send image to Azure registry
@@ -407,6 +410,72 @@ namespace MillimanAccessPortal.Services
                         containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
                         containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                         containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+
+                        #region Establish preview container storage resources as needed (should this be encapsulated in another method?)
+                        if (containerContentItemProperties.DataPersistenceEnabled)
+                        {
+                            containerContentItemProperties.PreviewShareDetails = new List<ContainerSharePublicationInfo>();
+                            AzureResourceApi cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
+
+                            foreach (ContainerSharePublicationInfo liveShareInfo in containerContentItemProperties.LiveShareDetails)
+                            {
+                                // Terminology: Here we establish *share*(s).  Later when we spin up a container group, a 
+                                // *share* becomes *mounted* to the group and is available as a *volume* to each container in the group
+                                string newPreviewAzureShareName = await cloudApi.CreateFileShare(contentItem.Id, liveShareInfo.UserShareName, true, true);
+                                containerContentItemProperties.PreviewShareDetails.Add(new ContainerSharePublicationInfo 
+                                {
+                                    UserShareName = liveShareInfo.UserShareName, 
+                                    AzureShareName = newPreviewAzureShareName, 
+                                    Action = liveShareInfo.Action 
+                                });
+
+                                if (liveShareInfo.Action != ContainerShareContentsAction.DeletePrevious)
+                                {
+                                    await cloudApi.DuplicateShareContents(liveShareInfo.AzureShareName, newPreviewAzureShareName);
+                                }
+
+                                ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{liveShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
+                                if (zipFile != default)
+                                {
+                                    var replacedFiles = await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, true);
+
+                                    if (containerizedAppPubProperties.ReplacedShareFiles is null)
+                                    {
+                                        containerizedAppPubProperties.ReplacedShareFiles = new Dictionary<string, List<string>> { };
+                                    }
+                                    containerizedAppPubProperties.ReplacedShareFiles.Add(liveShareInfo.UserShareName, replacedFiles);
+                                    thisPubRequest.TypeSpecificDetail = JsonSerializer.Serialize(containerizedAppPubProperties);
+                                    await dbContext.SaveChangesAsync();
+                                }
+                            }
+
+                            // When we support multiple shares we get multiple ContainerPublicationShareInfo from containerizedAppPubProperties
+                            // Currently no support for removal of any existing share
+                            IEnumerable<ContainerSharePublicationInfo> newSharesInfo =
+                                containerizedAppPubProperties.ShareInfo.Where(i => !containerContentItemProperties.LiveShareDetails.Select(l => l.UserShareName).Contains(i.UserShareName));
+
+                            // newly defined shares with this publication request
+                            foreach (ContainerSharePublicationInfo newShareInfo in newSharesInfo)
+                            {
+                                string newPreviewAzureShareName = await cloudApi.CreateFileShare(contentItem.Id, newShareInfo.UserShareName, true, true);
+
+                                containerContentItemProperties.PreviewShareDetails.Add(new ContainerSharePublicationInfo
+                                {
+                                    UserShareName = newShareInfo.UserShareName,
+                                    AzureShareName = newPreviewAzureShareName,
+                                    Action = newShareInfo.Action
+                                });
+
+                                ContentRelatedFile zipFile = thisPubRequest.LiveReadyFilesObj.FirstOrDefault(f => f.FilePurpose.Equals($"ContainerPersistedData-{newShareInfo.UserShareName}", StringComparison.OrdinalIgnoreCase));
+                                if (zipFile != default)
+                                {
+                                    await cloudApi.ExtractCompressedFileToShare(zipFile.FullPath, newPreviewAzureShareName, newShareInfo.Action == ContainerShareContentsAction.OverwritePrevious);
+                                }
+                            }
+
+                            // TODO Do we need a way to remove a share that is currently live?
+                        }
+                        #endregion
 
                         string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
 
@@ -446,7 +515,16 @@ namespace MillimanAccessPortal.Services
                                                                          vnetId,
                                                                          vnetName,
                                                                          true,
-                                                                         new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                         containerContentItemProperties.PreviewShareDetails,
+                                                                         new Dictionary<string, string> {
+                                                                                                          { "PathBase", contentToken },
+                                                                                                          { "MAP_URL_PATH_BASE", contentToken },
+                                                                                                          { "MAP_CHECK", "1" },
+                                                                                                          { "MAP_CLIENT_NAME", resourceTags.ClientName },
+                                                                                                          { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
+                                                                                                          { "MAP_SELECTION_GROUP_NAME", "PREVIEW_CONTAINER" },
+                                                                                                        },
+                                                                         contentItem.ClientId,
                                                                          containerContentItemProperties.PreviewContainerInternalPort);
 
                             Log.Information($"Container instance with content token {contentToken} started with URL: {containerUrl}");

@@ -102,6 +102,7 @@ export interface RelatedFiles {
   Thumbnail: RelatedFileUpload;
   UserGuide: RelatedFileUpload;
   ReleaseNotes: RelatedFileUpload;
+  ContainerPersistedData: RelatedFileUpload;
   [key: string]: RelatedFileUpload;
 }
 
@@ -127,10 +128,12 @@ export interface ContentItemDetail {
     liveEmbedUrl?: string;
     liveReportId?: Guid;
     liveWorkspaceId?: Guid;
+    liveShareDetails?: ContainerSharePublicationInfo[];
     navigationPaneEnabled?: boolean;
     previewEmbedUrl?: string;
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
+    dataPersistenceEnabled?: boolean;
   };
   typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
 }
@@ -151,6 +154,8 @@ export interface ContentItemPublicationDetail {
     BookmarksPaneEnabled?: boolean;
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
+    // Containerized App specific:
+    DataPersistenceEnabled?: boolean;
   };
   typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
 }
@@ -175,6 +180,8 @@ export interface TypeSpecificPublicationProperties {
   startTime?: string;
   endTime?: string;
   timeZoneId?: string;
+  removeExistingDataWithPublication?: boolean;
+  shareInfo?: ContainerSharePublicationInfo[];
 }
 
 export interface GoLiveViewModel {
@@ -199,6 +206,7 @@ export interface ContentItemFormErrors {
     Thumbnail?: string;
     UserGuide?: string;
     ReleaseNotes?: string;
+    ContainerPersistedData?: string;
   };
   associatedFiles?: {
     [uniqueId: string]: string;
@@ -232,7 +240,13 @@ export interface ContentItemFormErrors {
     startTime?: string;
     endTime?: string;
     timeZoneId?: string;
+    dataPersistenceEnabled?: string;
   };
+}
+
+export interface ContainerSharePublicationInfo {
+  userShareName: string;
+  action: number; // TODO may need to change to its own model/enumeration
 }
 
 export interface RootContentItemWithPublication extends RootContentItemWithStats {
@@ -762,9 +776,9 @@ export enum ContainerCpuCoresEnum {
 export enum ContainerCooldownEnum {
   Unspecified = 0,
   ThirtyMinutes = 1,
-  OneHour = 2,
+  SixtyMinutes = 2,
   NinetyMinutes = 3,
-  TwoHours = 4,
+  OneHundredAndTwentyMinutes = 4,
 }
 
 export enum ContainerRamGbEnum {
@@ -791,4 +805,9 @@ export enum ContainerInstanceLifetimeSchemeEnum {
   Unspecified = 0,
   AlwaysCold = 1,
   Custom = 2,
+}
+
+export enum ContainerShareContentsAction {
+  DeletePrevious = 0,
+  OverwritePrevious = 1,
 }

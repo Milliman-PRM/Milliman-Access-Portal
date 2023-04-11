@@ -40,11 +40,14 @@ namespace MapDbContextLib.Models
 
     public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
     {
+        public bool DataPersistenceEnabled { get; init; }
+
         public string LiveImageName { get; set; } = null;
         public string LiveImageTag { get; set; } = null;
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort LiveContainerInternalPort { get; set; } = 0;
+        public List<ContainerSharePublicationInfo> LiveShareDetails { get; set; } = new List<ContainerSharePublicationInfo>();
 
         [JsonConverter(typeof(LifetimeSchemeConverter))]
         public LifetimeSchemeBase LiveContainerLifetimeScheme { get; set; } = null;
@@ -54,6 +57,7 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort PreviewContainerInternalPort { get; set; } = 0;
+        public List<ContainerSharePublicationInfo> PreviewShareDetails { get; set; } = new List<ContainerSharePublicationInfo>();
 
         #region Lifetime management
         public abstract class LifetimeSchemeBase
@@ -70,9 +74,9 @@ namespace MapDbContextLib.Models
                 ContainerLingerTimeAfterActivity = source.CustomCooldownPeriod switch
                 {
                     ContainerCooldownPeriodEnum.ThirtyMinutes => TimeSpan.FromMinutes(30),
-                    ContainerCooldownPeriodEnum.OneHour => TimeSpan.FromMinutes(60),
+                    ContainerCooldownPeriodEnum.SixtyMinutes => TimeSpan.FromMinutes(60),
                     ContainerCooldownPeriodEnum.NinetyMinutes => TimeSpan.FromMinutes(90),
-                    ContainerCooldownPeriodEnum.TwoHours => TimeSpan.FromMinutes(120),
+                    ContainerCooldownPeriodEnum.OneHundredAndTwentyMinutes => TimeSpan.FromMinutes(120),
                     _ => throw new NotImplementedException(),
                 };
             }
@@ -93,12 +97,19 @@ namespace MapDbContextLib.Models
         {
             bool returnValue = false;
 
+            returnValue |= DataPersistenceEnabled;
             returnValue |= LiveContainerCpuCores != requestProps.ContainerCpuCores;
             returnValue |= LiveContainerRamGb != requestProps.ContainerRamGb;
             returnValue |= LiveContainerInternalPort != requestProps.ContainerInternalPort;
-            returnValue |= LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
+            returnValue |= LiveContainerLifetimeScheme is null || LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
 
-            if (LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && !returnValue)
+            HashSet<string> liveShareNames = LiveShareDetails.Select(d => d.UserShareName).ToHashSet();
+            IEnumerable<string> newShareNames = requestProps.ShareInfo.Select(i => i.UserShareName);
+            returnValue |= DataPersistenceEnabled && (LiveShareDetails is null || !liveShareNames.SetEquals(newShareNames));
+
+            if (LiveContainerLifetimeScheme != null && 
+                LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && 
+                !returnValue)
             {
                 CustomScheduleLifetimeScheme liveLifetimeScheme = (CustomScheduleLifetimeScheme)LiveContainerLifetimeScheme;
                 CustomScheduleLifetimeScheme requestScheme = new CustomScheduleLifetimeScheme(requestProps);

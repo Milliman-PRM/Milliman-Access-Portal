@@ -899,7 +899,18 @@ namespace MillimanAccessPortal.Controllers
                                                                      vnetId,
                                                                      vnetName,
                                                                      false,
-                                                                     new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                     typeSpecificInfo.DataPersistenceEnabled
+                                                                        ? (isLiveContent ? typeSpecificInfo.LiveShareDetails : typeSpecificInfo.PreviewShareDetails)
+                                                                        : null,
+                                                                     new Dictionary<string, string> {
+                                                                                                      { "PathBase", contentToken },
+                                                                                                      { "MAP_URL_PATH_BASE", contentToken },
+                                                                                                      { "MAP_CHECK", "1" },
+                                                                                                      { "MAP_CLIENT_NAME", resourceTags.ClientName },
+                                                                                                      { "MAP_CONTENT_ITEM_NAME", resourceTags.ContentItemName },
+                                                                                                      { "MAP_SELECTION_GROUP_NAME", isLiveContent ? resourceTags.SelectionGroupName : "PREVIEW_CONTAINER" },
+                                                                                                    },
+                                                                     contentItem.ClientId,
                                                                      isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
                     }
                     catch (ApplicationException ex)

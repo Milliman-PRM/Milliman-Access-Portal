@@ -41,7 +41,7 @@ namespace ContentPublishingService
             Thread.Sleep(Configuration.ApplicationConfiguration.GetValue("ServiceLaunchDelaySec", 0) * 1000);
 
             #region Use the built configuration to adjust service behaviors
-            host.Services.GetRequiredService<IOptions<HostOptions>>().Value.ShutdownTimeout = Configuration.ApplicationConfiguration.GetValue("StopWaitTimeSeconds", TimeSpan.FromSeconds(180));
+            host.Services.GetRequiredService<IOptions<HostOptions>>().Value.ShutdownTimeout = TimeSpan.FromSeconds(Configuration.ApplicationConfiguration.GetValue("StopWaitTimeSeconds", 180));
                   // Allow time at server shutdown for server tasks to complete
             #endregion
 

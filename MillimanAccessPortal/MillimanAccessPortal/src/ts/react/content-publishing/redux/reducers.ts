@@ -10,7 +10,7 @@ import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
   AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerInstanceLifetimeSchemeEnum,
-  ContainerRamGbEnum, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
+  ContainerRamGbEnum, ContainerSharePublicationInfo, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -69,6 +69,11 @@ const emptyContentItemDetail: ContentItemDetail = {
       uniqueUploadId: '',
       fileUploadId: '',
     },
+    ContainerPersistedData: {
+      fileOriginalName: '',
+      uniqueUploadId: '',
+      fileUploadId: '',
+    },
   },
   associatedFiles: {},
   thumbnailLink: '',
@@ -77,6 +82,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     filterPaneEnabled: false,
     navigationPaneEnabled: false,
     editableEnabled: false,
+    dataPersistenceEnabled: false,
   },
   typeSpecificPublicationProperties: {
     roleList: [],
@@ -92,10 +98,11 @@ const emptyContentItemDetail: ContentItemDetail = {
     fridayChecked: false,
     saturdayChecked: false,
     sundayChecked: false,
-    customCooldownPeriod: ContainerCooldownEnum.OneHour,
+    customCooldownPeriod: ContainerCooldownEnum.SixtyMinutes,
     startTime: '08:00:00',
     endTime: '17:00:00',
     timeZoneId: '',
+    shareInfo: [],
   },
 };
 
@@ -115,6 +122,7 @@ const emptyContentItemErrors: ContentItemFormErrors = {
     Thumbnail: '',
     UserGuide: '',
     ReleaseNotes: '',
+    ContainerPersistedData: '',
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
@@ -136,6 +144,7 @@ const emptyContentItemErrors: ContentItemFormErrors = {
     startTime: '',
     endTime: '',
     timeZoneId: '',
+    dataPersistenceEnabled: '',
   },
 };
 
@@ -659,6 +668,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.timeZoneId ?
           action.response.typeSpecificPublicationProperties.timeZoneId :
           state.defaultUserTimeZoneId,
+        shareInfo: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.shareInfo ?
+          action.response.typeSpecificPublicationProperties.shareInfo :
+          emptyContentItemDetail.typeSpecificPublicationProperties.shareInfo,
       },
       relatedFiles: {
         MasterContent: {
@@ -681,6 +694,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName: defaultIfUndefined(action.response.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -692,6 +710,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
@@ -724,12 +743,14 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId = generateUniqueId('Thumbnail');
     contentItemDetail.relatedFiles.UserGuide.uniqueUploadId = generateUniqueId('UserGuide');
     contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId = generateUniqueId('ReleaseNotes');
+    contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId = generateUniqueId('ContainerPersistedData');
 
     const uploads: Dict<UploadState> = {
       [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     const emptyContentItemFormData: PublishingFormData = {
@@ -872,7 +893,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
                action.inputName === 'thursdayChecked' ||
                action.inputName === 'fridayChecked' ||
                action.inputName === 'saturdayChecked' ||
-               action.inputName === 'sundayChecked') {
+               action.inputName === 'sundayChecked' ||
+               action.inputName === 'removeExistingDataWithPublication') {
       return {
         ...state,
         pendingFormData: {
@@ -955,6 +977,12 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName:
+            defaultIfUndefined(originalFormData.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -966,6 +994,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
@@ -1032,6 +1061,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
   BEGIN_FILE_UPLOAD: (state, action: UploadActions.BeginFileUpload) => {
     const relatedFiles: RelatedFiles = { ...state.pendingFormData.relatedFiles };
     const associatedFiles: Dict<AssociatedContentItemUpload> = { ...state.pendingFormData.associatedFiles };
+    const typeSpecificPublicationDetails = { ...state.pendingFormData.typeSpecificPublicationProperties };
 
     if (action.fileName.split('-')[0] !== 'associatedContent') {
       const relatedFilesKeys = Object.keys(state.pendingFormData.relatedFiles);
@@ -1068,6 +1098,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         associatedFiles: {
           ...associatedFiles,
         },
+        typeSpecificPublicationProperties: typeSpecificPublicationDetails,
       },
       uploads: {
         ...state.uploads,
@@ -1287,6 +1318,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -1298,6 +1334,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
@@ -1359,6 +1396,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -1373,6 +1415,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
@@ -1430,6 +1473,10 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     }
     if (action.response.contentTypeName === 'ContainerApp' && action.response.typeSpecificMetadata) {
       elementsToConfirm.containerConfigurations = false;
+    }
+    if (action.response.contentTypeName === 'ContainerApp' && action.response.typeSpecificMetadata &&
+        action.response.typeSpecificMetadata.dataPersistenceEnabled) {
+      elementsToConfirm.containerPersistedDataChanges = false;
     }
 
     return {
