@@ -94,6 +94,63 @@
     }
 }
 
+.file-share-diffs {
+    padding: 0 0 0 1em;
+
+    table {
+        width: 100%;
+        max-width: 100%;
+        table-layout: fixed;
+        background-color: $white;
+        border: 1px solid $charcoal;
+
+        th {
+            border-bottom: 1px solid $charcoal;
+            font-weight: bold;
+
+            &.file-name {
+                width: 12em;
+            }
+
+            &.status {
+                width: 7em;
+            }
+        }
+
+        tr.added {
+            background-color: rgba($green, .3);
+        }
+
+        tr.overwritten, tr.removed {
+            background-color: rgba($red, .3);
+        }
+
+        td.file-path-value {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    }
+
+    .no-values {
+        display: block;
+        font-style: italic;
+        margin-bottom: 1em;
+    }
+
+    button {
+        margin-bottom: 1em;
+        margin-left: 0;
+        
+        .action-icon-container-inline {
+          margin-right: 0.5em;
+
+          svg {
+            color: white;
+          }
+        }
+    }
+}
+
 .selection-group-detail {
     padding: 1em;
     margin: 1em 1em 1em 2em;

@@ -85,6 +85,7 @@
     <None Remove="src\ts\react\client-admin\redux\sagas.ts" />
     <None Remove="src\ts\react\client-admin\redux\selectors.ts" />
     <None Remove="src\ts\react\client-admin\redux\store.ts" />
+    <None Remove="src\ts\react\content-publishing\file-share-diffs.tsx" />
     <None Remove="src\ts\react\create-initial-user\create-initial-user.tsx" />
     <None Remove="src\ts\react\create-initial-user\index.tsx" />
     <None Remove="src\ts\react\enable-account\enable-account.tsx" />
@@ -173,6 +174,7 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\ts\react\content-publishing\file-share-diffs.tsx" />
     <TypeScriptCompile Include="src\ts\react\create-initial-user\create-initial-user.tsx" />
     <TypeScriptCompile Include="src\ts\react\create-initial-user\index.tsx" />
     <TypeScriptCompile Include="src\ts\react\enable-account\enable-account.tsx" />
